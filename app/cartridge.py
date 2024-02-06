@@ -10,10 +10,12 @@ import base64
 from cartesi.abi import String, Bytes, Bytes32, UInt
 
 from cartesapp.storage import Entity, helpers, seed
-from cartesapp.manager import query, mutation, get_metadata, event, output, add_output, emit_event, contract_call
+from cartesapp.context import get_metadata
+from cartesapp.input import query, mutation
+from cartesapp.output import event, output, add_output, emit_event, contract_call
 
 from .riv import riv_get_cartridge_info, riv_get_cartridge_screenshot, riv_get_cartridges_path, riv_get_cover, riv_get_cartridge_outcard
-from .setup import AppSettings
+from .settings import AppSettings
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +28,7 @@ LOGGER = logging.getLogger(__name__)
 class Cartridge(Entity):
     id              = helpers.PrimaryKey(str, 64)
     name            = helpers.Required(str, index=True, unique=True)
-    user_address    = helpers.Required(str, 66)
+    user_address    = helpers.Required(str, 42)
     info            = helpers.Optional(helpers.Json, lazy=True)
     created_at      = helpers.Required(int)
     cover           = helpers.Optional(bytes, lazy=True)

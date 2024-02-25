@@ -74,8 +74,8 @@ RUN ln -s /rivos/usr/bin/bwrap /usr/bin/ && \
 # install dapp
 WORKDIR /opt/cartesi/dapp
 
-COPY main.py .
 COPY app app
+COPY achievements achievements
 COPY misc/Rives-Logo.png misc/Rives-Logo.png
 COPY misc/snake.sqfs misc/snake.sqfs
 COPY misc/2048.sqfs misc/2048.sqfs
@@ -94,7 +94,7 @@ echo "#!/bin/sh
 set -e
 
 export PYTHONPATH=${PYTHONPATH}
-python3 main.py
+cartesapp run app achievements --log-level info
 " > entrypoint.sh && \
 chmod +x entrypoint.sh
 EOF

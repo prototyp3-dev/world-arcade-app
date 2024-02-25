@@ -1,5 +1,5 @@
 import os
-from cartesapp.manager import setup
+from cartesapp.setup import setup
 from .settings import AppSettings
 
 @setup()

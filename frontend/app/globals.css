@@ -1,333 +1,66 @@
-/* @tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-} */
-
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&family=Work+Sans:wght@100;200;300;400;500;600;700;800;900&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --foreground-rgb: 0,0,0;
-    --foreground-rgb-muted: rgba(241, 245, 249, 0.6);
-    --background-start-rgb: 36, 36, 36;
-    --background-end-rgb: 105, 105, 105;
-    --background-end-rgba0: rgba(100, 100, 100, 0.4);
-    --highlight-text-start-hex: #ed479a;
-    --highlight-text-end-hex: #8b5cf6;
-    --highlight-text-end-rgba0: rgba(139, 92, 246, 0.4);
-    --highlight-text-end-rgba1: rgba(139, 92, 246, 0.3);
-    --highlight-text-end-rgba2: rgba(139, 92, 246, 0.2);
-    --highlight-text-end-rgba3: rgba(139, 92, 246, 0.1);
-    --highlight-text-end-rgba4: rgba(139, 92, 246, 0.05);
-  }
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-rgb: 18, 18, 18;
+  --elements-color: 36, 36, 36;
+  --hover-color: 72, 72, 72;
 }
+
 
 body {
   color: rgb(var(--foreground-rgb));
-  background-color: rgb(var(--background-start-rgb));
+  background-color: rgb(var(--background-rgb));
 }
 
-.hover-2 {
-  --c: var(--highlight-text-end-hex); /* the color */
-  --b: .1em;    /* border length*/
-  --d: 16px;    /* the cube depth */
-
-  --_s: calc(var(--d) + var(--b));
-  background:
-    conic-gradient(at left var(--d) bottom var(--d),
-    #0000 90deg, rgb(255 255 255 /0.3) 0 225deg,rgb(255 255 255 /0.6) 0) border-box,
-    conic-gradient(at left var(--_s) bottom var(--_s), #0000 180deg, var(--c) 0) border-box;
-  border: solid #0000;
-  border-width: var(--b) var(--b) var(--_s) var(--_s);
-  transform: translate(calc(var(--d)/-1),var(--d));
-  clip-path:
-    polygon(
-     var(--d) 0%,
-     var(--d) 0%,
-     100% 0%,
-     100% calc(100% - var(--d)),
-     100% calc(100% - var(--d)),
-     var(--d) calc(100% - var(--d))
-    );
-  transition: 0.5s;
-}
-
-.hover-2-selected {
-  background:
-  conic-gradient(at left var(--d) bottom var(--d),
-  #0000 90deg, rgb(255 255 255 /0.3) 0 225deg,rgb(255 255 255 /0.6) 0) border-box,
-  conic-gradient(at left var(--_s) bottom var(--_s),
-  #0000 90deg, var(--c) 0) 0 100%/calc(100% - var(--b)) calc(100% - var(--b)) border-box;
-
-  transform: translate(0,0);
-  clip-path:
-    polygon(
-     0% var(--d),
-     var(--d) 0%,
-     100% 0%,
-     100% calc(100% - var(--d)),
-     calc(100% - var(--d)) 100%,
-     0% 100%
-   );
-}
-
-.hover-2:hover {
-  background:
-  conic-gradient(at left var(--d) bottom var(--d),
-  #0000 90deg, rgb(255 255 255 /0.3) 0 225deg,rgb(255 255 255 /0.6) 0) border-box,
-  conic-gradient(at left var(--_s) bottom var(--_s),
-  #0000 90deg, var(--c) 0) 0 100%/calc(100% - var(--b)) calc(100% - var(--b)) border-box;
-
-  transform: translate(0,0);
-  clip-path:
-    polygon(
-     0% var(--d),
-     var(--d) 0%,
-     100% 0%,
-     100% calc(100% - var(--d)),
-     calc(100% - var(--d)) 100%,
-     0% 100%
-   );
-}
-
-
-.custom-shadow {
-  /* box-shadow: rgba(139, 92, 246, 0.4) -5px 5px,
-    rgba(139, 92, 246, 0.3) -10px 10px,
-    rgba(139, 92, 246, 0.2) -15px 15px,
-    rgba(139, 92, 246, 0.1) -20px 20px,
-    rgba(139, 92, 246, 0.05) -25px 25px; */
-  box-shadow: var(--highlight-text-end-rgba0) -5px 5px,
-    var(--highlight-text-end-rgba1) -10px 10px,
-    var(--highlight-text-end-rgba2) -15px 15px,
-    var(--highlight-text-end-rgba3) -20px 20px,
-    var(--highlight-text-end-rgba4) -25px 25px;
-  margin-bottom: 24px;
-}
-
-
-
-
-/* CSS */
-.button-57 {
-  position: relative;
-  overflow: hidden;
-  display: inline-block;
-  font-size: 12px;
-  line-height: 12px;
-  /* padding: 18px 18px 17px; */
-  @apply p-5 rounded-md border border-current;
-  text-decoration: none;
-  cursor: pointer;
-  /* background: #fff; */
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-}
-
-.button-57 span:first-child {
-  position: relative;
-  transition: color 600ms cubic-bezier(0.48, 0, 0.12, 1);
-  z-index: 10;
-}
-
-.button-57 span:last-child {
-  /* color: white; */
-  color: rgb(var(--foreground-rgb));
-  display: block;
-  position: absolute;
-  bottom: 0;
-  transition: all 500ms cubic-bezier(0.48, 0, 0.12, 1);
-  z-index: 100;
-  opacity: 0;
-  top: 50%;
-  left: 50%;
-  transform: translateY(225%) translateX(-50%);
-  height: 14px;
-  line-height: 13px;
-}
-
-.button-57:disabled,
-.button-57[disabled]{
-  opacity: 50%;
-  cursor: not-allowed;
-}
-
-.button-57:after {
-  content: "";
-  position: absolute;
-  bottom: -50%;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--highlight-text-end-hex);
-  transform-origin: bottom center;
-  transition: transform 600ms cubic-bezier(0.48, 0, 0.12, 1);
-  transform: skewY(9.3deg) scaleY(0);
-  z-index: 50;
-}
-
-.button-57:hover:after {
-  transform-origin: bottom center;
-  transform: skewY(9.3deg) scaleY(2);
-}
-
-.button-57:hover span:last-child {
-  transform: translateX(-50%) translateY(-100%);
-  opacity: 1;
-  transition: all 900ms cubic-bezier(0.48, 0, 0.12, 1);
-}
-
-
-.rainbow-background {
-  background: linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%);
+section {
+  @apply max-w-7xl mx-auto pb-12 !pt-[126px] px-2 h-fit flex flex-col w-full absolute top-0 left-1/2 -translate-x-1/2;
 }
 
 @layer utilities {
-  .first-section {
-    @apply mx-auto pb-12 !pt-[126px] px-8 h-fit flex flex-col items-center;
+  .text-balance {
+    text-wrap: balance;
   }
 
-  .second-section {
-    @apply pb-12 !pt-[64px] h-svh flex flex-col;
+  .element {
+    @apply bg-[rgb(var(--elements-color))];
   }
 
-  .custom-scrollbar {
-    /* scrollbar-color: var(--highlight-text-start-hex) var(--highlight-text-end-hex); */
-    scrollbar-width: thin;
+  .element-inside {
+    @apply bg-[rgb(var(--background-rgb))];
   }
 
-  .title-color {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-[var(--highlight-text-start-hex)] to-[var(--highlight-text-end-hex)];
+  .achievement-hover {
+    @apply hover:bg-[rgb(var(--hover-color))];
   }
 
-  .title-text {
-    @apply 2xl:text-8xl xl:text-7xl md:text-3xl sm:text-2xl font-semibold title-color leading-none;
+  .tabs-header {
+    @apply flex space-x-1 bg-[rgb(var(--elements-color))] p-1 rounded;
   }
 
-  .subtitle-text {
-    @apply font-semibold 2xl:text-2xl xl:text-lg md:text-sm sm:text-base relative;
+  .tabs-option {
+    @apply w-full py-2.5 text-sm rounded hover:bg-[rgb(var(--hover-color))];
   }
 
-  .cartridge-title-text {
-    @apply font-semibold sm:text-4xl text-xl relative title-color;
+  .tabs-option-selected {
+    @apply tabs-option bg-[rgb(var(--hover-color))];
   }
-
-
-  .games-list {
-    @apply flex flex-wrap ms-[148px] mb-24;
+  
+  .tab-content {
+    @apply element mt-4 p-4 rounded;
   }
+}
 
-  .games-list-item {
-    @apply p-4 text-center bg-gray-400 hover:games-list-selected-item;
-  }
+.navbar {
+  @apply w-full h-16 bg-[rgb(var(--elements-color))] flex z-10 max-w-7xl rounded-md absolute top-0 left-1/2 -translate-x-1/2;
+}
 
-  .games-list-selected-item {
-    @apply bg-gradient-to-r from-yellow-100 to-pink-300;
-  }
+.navbar-item {
+  @apply px-6 hover:bg-[rgb(var(--hover-color))];
+}
 
-  .fallback-bg-color {
-    @apply bg-[rgb(var(--foreground-rgb))];
-  }
-
-  .game-list-fallback-animation {
-    @apply w-auto px-4 py-4 border-l-2 border-l-[var(--highlight-text-end-hex)];
-  }
-
-  .game-list-fallback-animation > div {
-    @apply h-4 w-48 rounded fallback-bg-color;
-  }
-
-  .game-option-tabs-header {
-    @apply flex space-x-1 bg-gray-400 bg-opacity-40 p-1;
-  }
-
-  .game-tabs-option {
-    @apply w-full py-2.5 text-sm;
-  }
-
-  .game-tabs-option-text {
-    @apply flex justify-center items-center;
-  }
-
-  .game-tabs-option-text > span {
-    @apply ms-1;
-  }
-
-  .game-tabs-option-unselected {
-    @apply game-tabs-option hover:bg-gray-400;
-  }
-
-  .game-tabs-option-selected {
-    @apply game-tabs-option bg-gray-400;
-  }
-
-  .game-tab-content {
-    @apply p-3 bg-gray-400;
-  }
-
-  .muted-text {
-    @apply text-[var(--foreground-rgb-muted)];
-  }
-
-  .scoreboard-btn {
-    @apply hover:text-[var(--highlight-text-end-hex)];
-  }
-
-  .header {
-    @apply w-full h-16 bg-[var(--highlight-text-end-hex)] flex absolute top-0 z-10;
-  }
-
-  .link-active {
-    @apply bg-[rgb(var(--background-start-rgb))] text-white;
-  }
-
-  .navbar-item {
-    @apply px-6 hover:bg-[rgb(var(--background-start-rgb))] hover:text-white;
-  }
-
-  .btn {
-    @apply p-3 bg-[var(--highlight-text-end-hex)] border border-[var(--highlight-text-end-hex)] hover:bg-[rgb(var(--background-start-rgb))] hover:text-[var(--highlight-text-end-hex)];
-  }
-
-  .btn:disabled,
-  .btn[disabled]{
-    opacity: 70%;
-    cursor: not-allowed;
-  }
-
-  .gameplay-screen {
-    @apply w-[640px] h-[400px] md:w-[720px] md:h-[480px] lg:w-[960px] lg:h-[720px];
-  }
-
-  .gameplay-section {
-    @apply gameplay-screen fixed z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
-  }
+.navbar-item-active {
+  @apply underline;
 }

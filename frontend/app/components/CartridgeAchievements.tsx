@@ -19,7 +19,7 @@ export default async function CartridgeAchievements({cartridge_id}:{cartridge_id
 
     return (
         <div className="element rounded grid grid-cols-6 items-center justify-items-center">
-            <Link className="flex flex-col items-center p-4 text-center achievement-hover" href={`/achievement/create/${cartridge_id}`}>
+            <Link className="flex flex-col items-center p-4 text-center hover-color" href={`/achievement/create/${cartridge_id}`}>
                 <div className="border-4 rounded-full">
                     <AddIcon style={{width: "128px", height: "128px"}}/>
                 </div>
@@ -29,7 +29,7 @@ export default async function CartridgeAchievements({cartridge_id}:{cartridge_id
             {
                 achievements?.map((achievement, index) => {
                     return (
-                        <Link className="flex flex-col items-center p-4 text-center achievement-hover" href={`/achievement/${achievement.id}`}>
+                        <Link className="flex flex-col items-center p-4 text-center hover-color" href={`/achievement/${achievement.id}`}>
                             <Image className="rounded-full border-4"
                                 alt={cartridge_id}
                                 src={`/achievement-trophy.jpg`}

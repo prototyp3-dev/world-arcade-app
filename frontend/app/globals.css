@@ -32,7 +32,7 @@ section {
     @apply bg-[rgb(var(--background-rgb))];
   }
 
-  .achievement-hover {
+  .hover-color {
     @apply hover:bg-[rgb(var(--hover-color))];
   }
 
@@ -50,6 +50,10 @@ section {
   
   .tab-content {
     @apply element mt-4 p-4 rounded;
+  }
+
+  .btn {
+    @apply element p-2 text-center;
   }
 }
 

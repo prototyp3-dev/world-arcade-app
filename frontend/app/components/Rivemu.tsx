@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect, cache } from 'react'
 import Script from "next/script";
-import Image from 'next/image';
 import {Parser} from 'expr-eval';
 
 
@@ -11,12 +10,18 @@ import { CartridgeInfo } from "@/app/libs/app/ifaces";
 import { cartridge as CartridgeData } from '../libs/app/lib';
 import { envClient } from '../utils/clientEnv';
 
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import StopIcon from '@mui/icons-material/Stop';
+import ReplayIcon from '@mui/icons-material/Replay';
 
-// const getCartridgeData = cache(async (id:string) => {
-// 	const cartridgeData:Uint8Array = await CartridgeData({id:id},{decode:true, cartesiNodeUrl: envClient.CARTESI_NODE_URL,cache:"force-cache"});
 
-//     return cartridgeData;
-// })
+const getCartridgeData = cache(async (id:string) => {
+	const data = await CartridgeData({id:id},{decode:true,decodeModel:"bytes", cartesiNodeUrl: envClient.CARTESI_NODE_URL, cache:"force-cache"});
+
+    return data;
+})
 
 
 interface Gameplay {
@@ -79,8 +84,6 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
             // setReplayLog(undefined);
         }
         await loadCartridge();
-        setCancelled(false);
-        setFreshOpen(true);
         // if (selectedCartridge?.replay){
         //     setReplayLog(selectedCartridge.replay);
         //     setIsReplaying(true);
@@ -94,8 +97,7 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
 
     async function loadCartridge() {
         if (cartridgeData) return;
-        //const data = await getCartridgeData(cartridge.id);
-        const data = await CartridgeData({id:cartridge.id},{decode:true,decodeModel:"bytes", cartesiNodeUrl: envClient.CARTESI_NODE_URL, cache:"force-cache"});
+        const data = await getCartridgeData(cartridge.id);
         setCartridgeData(data);
     }
 
@@ -332,44 +334,86 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
                 <span>Score: {overallScore}</span>
             </div>
 
-            <div className='bg-black max-h-full max-w-full'
+            <div className='bg-black w-full flex flex-row space-x-8'
                 >
-                <div className='flex justify-center gameplay-screen max-h-full max-w-full'>
-                    <canvas
-                        className='max-h-full max-w-full'
-                        id="canvas"
-                        height={768}
-                        width={768}
-                        onContextMenu={(e) => e.preventDefault()}
-                        tabIndex={-1}
-                        style={{
-                            imageRendering: "pixelated",
-                            objectFit: "contain"
-                        }}
-                    />
-                </div>
+                    {
+                        !cartridgeData?
+                            <div className="gameplay-screen max-h-full max-w-full p-4 flex flex-col justify-center items-center">
+                                <div className='w-16 h-16 border-2 rounded-full border-current border-r-transparent animate-spin'>
+                                </div>
+                                <div className='mt-2'>
+                                    <span>Downloading {cartridge.name} Cartridge</span>
+                                </div>
+                            </div>
+                            
+                        :
+                        <div className='flex justify-center gameplay-screen max-h-full max-w-full'>
+                            <canvas
+                                className='max-h-full max-w-full'
+                                id="canvas"
+                                height={768}
+                                width={768}
+                                onContextMenu={(e) => e.preventDefault()}
+                                tabIndex={-1}
+                                style={{
+                                    imageRendering: "pixelated",
+                                    objectFit: "contain"
+                                }}
+                            />
+                        </div>    
+                    }
 
                 {/* <div hidden={isPlaying} className='absolute top-[40px] gameplay-screen'>
                     {coverFallback()}
                 </div> */}
+
+                <div className='p-4 border-s border-gray-500'>
+                    <div className='rounded-md element-inside grid grid-cols-3 space-x-2 p-8'>
+
+                        <span className='ms-2 col-span-3 text-sm mb-2'>
+                            Game Controls
+                        </span>
+
+                        {
+                            !isPlaying?
+                                <button disabled={!cartridgeData} title='Start' className={`bg-green-700 p-2 rounded-full ${cartridgeData? "hover:bg-green-600":""}`} onKeyDown={() => null} onKeyUp={() => null} onClick={rivemuStart}>
+                                    <PlayCircleOutlineIcon/>
+                                </button>
+                            :
+                                // onKeyDown and onKeyUp "null" prevent buttons pressed when playing to trigger "rivemuStop"
+                                <button title='Stop' className='p-2 rounded-full bg-red-700 hover:bg-red-600' onKeyDown={() => null} onKeyUp={() => null} onClick={rivemuStop}>
+                                    <StopIcon/>
+                                </button>
+                        }
+
+                        <button disabled={!isPlaying} title='Restart' className={`element p-2 rounded-full ${isPlaying? "hover-color":""}`} onClick={rivemuStart}>
+                            <RestartAltIcon/>
+                        </button>
+
+                        <button disabled={!isPlaying} title='Fullscreen' className={`element p-2 rounded-full ${isPlaying? "hover-color":""}`} onKeyDown={() => null} onKeyUp={() => null} onClick={rivemuFullscreen}>
+                            <FullscreenIcon/>
+                        </button>
+
+                        <span className='col-span-3 text-sm mb-2'>
+                            Log Controls
+                        </span>
+
+                        <button disabled={!cartridgeGameplay} title='Replay' className={`element p-2 rounded-full ${isPlaying? "hover-color":""}`}>
+                            <ReplayIcon/>
+                        </button>
+                        
+                        <button disabled={!cartridgeGameplay} className={`text-sm element p-2 rounded-full ${isPlaying? "hover-color":""}`}>
+                            Upload
+                        </button>
+
+                        <button disabled={!cartridgeGameplay} className={`text-sm element p-2 rounded-full ${isPlaying? "hover-color":""}`}>
+                            Submit
+                        </button>
+
+                    </div>
+                </div>
             </div>
 
-            <div className='text-center d-flex space-x-1 justify-content-center mt-4'>
-                {
-                    !isPlaying?
-                        <button className='' onClick={rivemuStart}>
-                            Start
-                        </button>
-                    :
-                        // onKeyDown and onKeyUp "null" prevent buttons pressed when playing to trigger "rivemuStop"
-                        <button className='' onKeyDown={() => null} onKeyUp={() => null} onClick={rivemuStop}>
-                            Stop
-                        </button>
-                }
-                <button hidden={!isPlaying} className='' onKeyDown={() => null} onKeyUp={() => null} onClick={rivemuFullscreen}>
-                    Fullscreen
-                </button>
-            </div>
             <Script src="/rivemu.js?" strategy="lazyOnload" />
         {/* <div className="opacity-60 fixed inset-0 z-0 bg-black" onClick={() => close()}></div> */}
         </div>

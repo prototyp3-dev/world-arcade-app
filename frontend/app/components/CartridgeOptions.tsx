@@ -10,6 +10,7 @@ import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 import { CartridgeInfo } from "@/app/libs/app/ifaces";
 import CartridgeAchievements from "./CartridgeAchievements";
 import { Suspense } from "react";
+import Rivemu from "./Rivemu";
 
 
 function loadingFallback() {
@@ -63,7 +64,8 @@ export default function CartridgeOptions({cartridge}:{cartridge:CartridgeInfo}) 
 
             <Tab.Panels className="tab-content">
                 <Tab.Panel className="">
-                    Play {cartridge.name}
+                    {/* Play {cartridge.name} */}
+                    <Rivemu cartridge={cartridge}/>
                 </Tab.Panel>
 
                 <Tab.Panel className="">

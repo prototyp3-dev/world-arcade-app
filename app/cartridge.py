@@ -31,27 +31,27 @@ class Cartridge(Entity):
     user_address    = helpers.Required(str, 42)
     info            = helpers.Optional(helpers.Json, lazy=True)
     created_at      = helpers.Required(int)
-    cover           = helpers.Optional(bytes, lazy=True)
+    cover           = helpers.Optional(bytes)
 
 @seed()
 def initialize_data():
-    # try:
-    #     cartridge_example_file = open('misc/snake.sqfs','rb')
-    #     cartridge_example_data = cartridge_example_file.read()
-    #     cartridge_example_file.close()
-    #     create_cartridge(cartridge_example_data,msg_sender="0xAf1577F6A113da0bc671a59D247528811501cF94")
-    #     if AppSettings.rivemu_path is None: os.remove('misc/snake.sqfs')
-    # except Exception as e:
-    #     LOGGER.warning(e)
+    try:
+        cartridge_example_file = open('misc/snake.sqfs','rb')
+        cartridge_example_data = cartridge_example_file.read()
+        cartridge_example_file.close()
+        create_cartridge(cartridge_example_data,msg_sender="0xAf1577F6A113da0bc671a59D247528811501cF94")
+        if AppSettings.rivemu_path is None: os.remove('misc/snake.sqfs')
+    except Exception as e:
+        LOGGER.warning(e)
 
-    # try:
-    #     cartridge_example_file = open('misc/freedoom.sqfs','rb')
-    #     cartridge_example_data = cartridge_example_file.read()
-    #     cartridge_example_file.close()
-    #     create_cartridge(cartridge_example_data,msg_sender="0xAf1577F6A113da0bc671a59D247528811501cF94")
-    #     if AppSettings.rivemu_path is None: os.remove('misc/freedoom.sqfs')
-    # except Exception as e:
-    #     LOGGER.warning(e)
+    try:
+        cartridge_example_file = open('misc/freedoom.sqfs','rb')
+        cartridge_example_data = cartridge_example_file.read()
+        cartridge_example_file.close()
+        create_cartridge(cartridge_example_data,msg_sender="0xAf1577F6A113da0bc671a59D247528811501cF94")
+        if AppSettings.rivemu_path is None: os.remove('misc/freedoom.sqfs')
+    except Exception as e:
+        LOGGER.warning(e)
 
     try:
         cartridge_example_file = open('misc/antcopter.sqfs','rb')
@@ -62,23 +62,23 @@ def initialize_data():
     except Exception as e:
         LOGGER.warning(e)
 
-    # try:
-    #     cartridge_example_file = open('misc/monky.sqfs','rb')
-    #     cartridge_example_data = cartridge_example_file.read()
-    #     cartridge_example_file.close()
-    #     create_cartridge(cartridge_example_data,msg_sender="0xAf1577F6A113da0bc671a59D247528811501cF94")
-    #     if AppSettings.rivemu_path is None: os.remove('misc/monky.sqfs')
-    # except Exception as e:
-    #     LOGGER.warning(e)
+    try:
+        cartridge_example_file = open('misc/monky.sqfs','rb')
+        cartridge_example_data = cartridge_example_file.read()
+        cartridge_example_file.close()
+        create_cartridge(cartridge_example_data,msg_sender="0xAf1577F6A113da0bc671a59D247528811501cF94")
+        if AppSettings.rivemu_path is None: os.remove('misc/monky.sqfs')
+    except Exception as e:
+        LOGGER.warning(e)
 
-    # try:
-    #     cartridge_example_file = open('misc/2048.sqfs','rb')
-    #     cartridge_example_data = cartridge_example_file.read()
-    #     cartridge_example_file.close()
-    #     create_cartridge(cartridge_example_data,msg_sender="0xAf1577F6A113da0bc671a59D247528811501cF94")
-    #     if AppSettings.rivemu_path is None: os.remove('misc/2048.sqfs')
-    # except Exception as e:
-    #     LOGGER.warning(e)
+    try:
+        cartridge_example_file = open('misc/2048.sqfs','rb')
+        cartridge_example_data = cartridge_example_file.read()
+        cartridge_example_file.close()
+        create_cartridge(cartridge_example_data,msg_sender="0xAf1577F6A113da0bc671a59D247528811501cF94")
+        if AppSettings.rivemu_path is None: os.remove('misc/2048.sqfs')
+    except Exception as e:
+        LOGGER.warning(e)
 
 
 # Inputs
@@ -252,7 +252,7 @@ def cartridges(payload: CartridgesPayload) -> bool:
     dict_list_result = []
     for cartridge in cartridges:
         cartridge_dict = cartridge.to_dict()
-        # cartridge_dict['cover'] = base64.b64encode(cartridge_dict['cover'])
+        cartridge_dict['cover'] = base64.b64encode(cartridge_dict['cover'])
         dict_list_result.append(cartridge_dict)
 
     LOGGER.info(f"Returning {len(dict_list_result)} of {total} cartridges")

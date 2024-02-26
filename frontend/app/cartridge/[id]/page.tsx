@@ -1,18 +1,16 @@
-
-import { cartridgeMockList, achievementsMockDict } from "@/app/utils/mocks"
-import { delay } from "@/app/utils/util"
+import { cartridgeInfo } from "@/app/libs/app/lib";
 import CartridgeOptions from "@/app/components/CartridgeOptions";
+import { cache } from "react";
+import { CartridgeInfo } from "@/app/libs/app/ifaces";
+import { envClient } from "@/app/utils/clientEnv";
 
 
-const getCartridge = async(id:string) => {
-    delay(1500);
 
-    for (let i = 0; i < cartridgeMockList.length; i++) {
-        if (cartridgeMockList[i].id == id)
-            return cartridgeMockList[i];
-    }
-}
+const getCartridge = cache(async (id:string) => {
+	const cartridge:CartridgeInfo = await cartridgeInfo({id: id},{decode:true, cartesiNodeUrl: envClient.CARTESI_NODE_URL,cache:"force-cache"});
 
+    return cartridge;
+})
 
 
 export default async function Cartridge({ params }: { params: { id: string } }) {

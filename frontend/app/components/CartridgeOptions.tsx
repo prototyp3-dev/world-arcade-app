@@ -7,7 +7,7 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 
 
-import { Cartridge } from "../utils/mocks";
+import { CartridgeInfo } from "@/app/libs/app/ifaces";
 import CartridgeAchievements from "./CartridgeAchievements";
 import { Suspense } from "react";
 
@@ -20,7 +20,7 @@ function loadingFallback() {
     )
 }
 
-export default function CartridgeOptions({cartridge}:{cartridge:Cartridge}) {
+export default function CartridgeOptions({cartridge}:{cartridge:CartridgeInfo}) {
     return (
         <Tab.Group>
             <Tab.List className="tabs-header">

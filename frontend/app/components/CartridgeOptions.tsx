@@ -29,8 +29,8 @@ export default function CartridgeOptions({cartridge}:{cartridge:CartridgeInfo}) 
                     className={({selected}) => {return selected?"tabs-option-selected":"tabs-option"}}
                     >
                         <span className='flex justify-center items-center text-xl'>
-                            <VideogameAssetIcon/>
-                            <span className="ms-1">Game</span>
+                            <EmojiEventsIcon/>
+                            <span className="ms-1">Achievements</span>
                         </span>
                 </Tab>
 
@@ -56,17 +56,20 @@ export default function CartridgeOptions({cartridge}:{cartridge:CartridgeInfo}) 
                     className={({selected}) => {return selected?"tabs-option-selected":"tabs-option"}}
                     >
                         <span className='flex justify-center items-center text-xl'>
-                            <EmojiEventsIcon/>
-                            <span className="ms-1">Achievements</span>
+                            <VideogameAssetIcon/>
+                            <span className="ms-1">Play</span>
                         </span>
                 </Tab>
+
             </Tab.List>
 
             <Tab.Panels className="tab-content">
                 <Tab.Panel className="">
-                    <Rivemu cartridge={cartridge}/>
+                    <Suspense fallback={loadingFallback()}>
+                        <CartridgeAchievements cartridge_id={cartridge.id}/>
+                    </Suspense>
                 </Tab.Panel>
-
+    
                 <Tab.Panel className="">
                     List of Gameplays for {cartridge.name}
                 </Tab.Panel>
@@ -76,10 +79,9 @@ export default function CartridgeOptions({cartridge}:{cartridge:CartridgeInfo}) 
                 </Tab.Panel>
 
                 <Tab.Panel className="">
-                    <Suspense fallback={loadingFallback()}>
-                        <CartridgeAchievements cartridge_id={cartridge.id}/>
-                    </Suspense>
+                    <Rivemu cartridge={cartridge}/>
                 </Tab.Panel>
+
             </Tab.Panels>
         </Tab.Group>
     );

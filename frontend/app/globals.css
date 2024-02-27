@@ -16,7 +16,7 @@ body {
 }
 
 section {
-  @apply max-w-7xl mx-auto pb-12 !pt-[126px] h-fit flex flex-col w-full absolute top-0 left-1/2 -translate-x-1/2;
+  @apply max-w-7xl mx-auto pb-12 !pt-[96px] h-fit flex flex-col w-full absolute top-0 left-1/2 -translate-x-1/2;
 }
 
 @layer utilities {

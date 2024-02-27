@@ -6,20 +6,27 @@ import { delay } from '../utils/util';
 
 
 const getAchievements = async(id:string) => {
-    delay(1500);
+    await delay(1500);
+
+    if (id.length == 0) {
+        // get all achievements
+    } else {
+        // get achievements for a specific cartridge
+    }
 
     return achievementsMockDict.get(id);
 }
 
 
 
-export default async function CartridgeAchievements({cartridge_id}:{cartridge_id:string}) {
-    const achievements = await getAchievements(cartridge_id);
+export default async function CartridgeAchievements({cartridge_id}:{cartridge_id?:string}) {
+    const selectedCartridgeId = cartridge_id || "";
+    const achievements = await getAchievements(selectedCartridgeId);
 
 
     return (
         <div className="element rounded grid grid-cols-6 items-center justify-items-center">
-            <Link className="flex flex-col items-center p-4 text-center hover-color" href={`/achievement/create/${cartridge_id}`}>
+            <Link className="flex flex-col items-center p-4 text-center hover-color" href={`/achievement/create/${selectedCartridgeId}`}>
                 <div className="border-4 rounded-full">
                     <AddIcon style={{width: "128px", height: "128px"}}/>
                 </div>
@@ -31,8 +38,8 @@ export default async function CartridgeAchievements({cartridge_id}:{cartridge_id
                     return (
                         <Link className="flex flex-col items-center p-4 text-center hover-color" href={`/achievement/${achievement.id}`}>
                             <Image className="rounded-full border-4"
-                                alt={cartridge_id}
-                                src={`/achievement-trophy.jpg`}
+                                alt={achievement.name}
+                                src={`/made_it_symbol_trans.jpg`}
                                 width={128}
                                 height={128}
                             />

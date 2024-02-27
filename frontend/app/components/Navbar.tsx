@@ -26,16 +26,16 @@ function Navbar() {
                 Games
             </Link>
 
+            <Link href={"/achievements"} className={`invisible md:visible h-full grid grid-cols-1 items-center navbar-item ${pathname === "/achievements" ? "navbar-item-active" : "" }`}>
+                Achievements
+            </Link>
+
             <Link href={"/gameplays"} className={`invisible md:visible h-full grid grid-cols-1 items-center navbar-item ${pathname === "/gameplays" ? "navbar-item-active" : "" }`}>
                 Gameplays
             </Link>
 
             <Link href={"/moments"} className={`invisible md:visible h-full grid grid-cols-1 items-center navbar-item ${pathname === "/moments" ? "navbar-item-active" : "" }`}>
                 Moments
-            </Link>
-
-            <Link href={"/achievements"} className={`invisible md:visible h-full grid grid-cols-1 items-center navbar-item ${pathname === "/achievements" ? "navbar-item-active" : "" }`}>
-                Achievements
             </Link>
 
             <div className='flex-1 flex justify-end'>

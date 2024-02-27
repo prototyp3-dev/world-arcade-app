@@ -1,10 +1,10 @@
 import CreateAchievementForm from "@/app/components/CreateAchievementForm";
 
-export default function CreateAchievement({ params }: { params: { cartridge_id: string } }) {
+export default function CreateAchievementPage() {
     return (
         <main>
             <section>
-                <CreateAchievementForm  cartridge_id={params.cartridge_id} />
+                <CreateAchievementForm />
             </section>
         </main>
     )

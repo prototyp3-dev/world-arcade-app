@@ -6,20 +6,59 @@
  */
 
 export interface _Master_ {
-  WalletOutput: WalletOutput;
-  Erc721Event: Erc721Event;
-  withdrawErc20: WithdrawErc20;
   WithdrawErc721Payload: WithdrawErc721Payload;
-  Erc20Event: Erc20Event;
-  withdrawEther: WithdrawEther;
-  EtherEvent: EtherEvent;
-  TransferEtherPayload: TransferEtherPayload;
-  BalancePayload: BalancePayload;
-  WithdrawEtherPayload: WithdrawEtherPayload;
-  TransferErc721Payload: TransferErc721Payload;
   TransferErc20Payload: TransferErc20Payload;
   WithdrawErc20Payload: WithdrawErc20Payload;
+  TransferEtherPayload: TransferEtherPayload;
+  WithdrawEtherPayload: WithdrawEtherPayload;
+  withdrawErc20: WithdrawErc20;
+  Erc20Event: Erc20Event;
+  withdrawEther: WithdrawEther;
+  WalletOutput: WalletOutput;
   withdrawErc721: WithdrawErc721;
+  EtherEvent: EtherEvent;
+  Erc721Event: Erc721Event;
+  BalancePayload: BalancePayload;
+  TransferErc721Payload: TransferErc721Payload;
+}
+export interface WithdrawErc721Payload {
+  token: string;
+  id: number;
+  execLayerData: string;
+}
+export interface TransferErc20Payload {
+  token: string;
+  receiver: string;
+  amount: number;
+  execLayerData: string;
+}
+export interface WithdrawErc20Payload {
+  token: string;
+  amount: number;
+  execLayerData: string;
+}
+export interface TransferEtherPayload {
+  receiver: string;
+  amount: number;
+  execLayerData: string;
+}
+export interface WithdrawEtherPayload {
+  amount: number;
+  execLayerData: string;
+}
+export interface WithdrawErc20 {
+  user: string;
+  amount: number;
+}
+export interface Erc20Event {
+  user: string;
+  address: string;
+  mod_amount: number;
+  balance: number;
+}
+export interface WithdrawEther {
+  user: string;
+  amount: number;
 }
 export interface WalletOutput {
   ether?: number;
@@ -37,67 +76,28 @@ export interface WalletOutput {
     [k: string]: [number[], number[]];
   };
 }
-export interface Erc721Event {
-  user: string;
-  address: string;
-  mod_id: number;
-  ids: number[];
-}
-export interface WithdrawErc20 {
-  user: string;
-  amount: number;
-}
-export interface WithdrawErc721Payload {
-  token: string;
+export interface WithdrawErc721 {
+  sender: string;
+  receiver: string;
   id: number;
-  execLayerData: string;
-}
-export interface Erc20Event {
-  user: string;
-  address: string;
-  mod_amount: number;
-  balance: number;
-}
-export interface WithdrawEther {
-  user: string;
-  amount: number;
 }
 export interface EtherEvent {
   user: string;
   mod_amount: number;
   balance: number;
 }
-export interface TransferEtherPayload {
-  receiver: string;
-  amount: number;
-  execLayerData: string;
+export interface Erc721Event {
+  user: string;
+  address: string;
+  mod_id: number;
+  ids: number[];
 }
 export interface BalancePayload {
   address: string;
-}
-export interface WithdrawEtherPayload {
-  amount: number;
-  execLayerData: string;
 }
 export interface TransferErc721Payload {
   token: string;
   receiver: string;
   id: number;
   execLayerData: string;
-}
-export interface TransferErc20Payload {
-  token: string;
-  receiver: string;
-  amount: number;
-  execLayerData: string;
-}
-export interface WithdrawErc20Payload {
-  token: string;
-  amount: number;
-  execLayerData: string;
-}
-export interface WithdrawErc721 {
-  sender: string;
-  receiver: string;
-  id: number;
 }

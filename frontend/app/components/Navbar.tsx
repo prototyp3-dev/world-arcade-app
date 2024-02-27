@@ -3,25 +3,11 @@
 import Link from 'next/link'
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from 'react'
-import { useConnectWallet, useSetChain } from '@web3-onboard/react';
-import RivesLogo from './svg/RivesLogo';
-
+import { useConnectWallet } from '@web3-onboard/react';
 function Navbar() {
     const pathname = usePathname();
     const [{ wallet, connecting }, connect, disconnect] = useConnectWallet();
-    const [{ chains, connectedChain }, setChain] = useSetChain();
     const [connectButtonTxt, setConnectButtonTxt] = useState("Connect");
-
-    useEffect(() => {
-        if (!connectedChain) return;
-
-        chains.forEach((chain) => {
-            if (connectedChain.id == chain.id) return;
-        })
-
-        setChain({chainId: chains[0].id});
-
-      }, [connectedChain])
 
 
     useEffect(() => {
@@ -35,17 +21,21 @@ function Navbar() {
     }, [connecting, wallet])
 
     return (
-        <header className='header'>
-            <Link href={"/"} className={`h-full grid grid-cols-1 items-center navbar-item ${pathname === "/" ? "link-active" : "" }`}>
-                <RivesLogo style={{width:100}}/>
+        <header className='navbar'>
+            <Link href={"/"} className={`invisible md:visible h-full grid grid-cols-1 items-center navbar-item ${pathname === "/" ? "navbar-item-active" : "" }`}>
+                Games
             </Link>
 
-            <a href={"/cartridges"} className={`invisible md:visible h-full grid grid-cols-1 items-center navbar-item ${pathname === "/cartridges" ? "link-active" : "" }`}>
-                <p>Cartridges</p>
-            </a>
+            <Link href={"/achievements"} className={`invisible md:visible h-full grid grid-cols-1 items-center navbar-item ${pathname === "/achievements" ? "navbar-item-active" : "" }`}>
+                Achievements
+            </Link>
 
-            <Link href={"/insert-cartridge"} className={`invisible md:visible h-full grid grid-cols-1 items-center navbar-item ${pathname === "/insert-cartridge" ? "link-active" : "" }`}>
-                Insert Cartridge
+            <Link href={"/gameplays"} className={`invisible md:visible h-full grid grid-cols-1 items-center navbar-item ${pathname === "/gameplays" ? "navbar-item-active" : "" }`}>
+                Gameplays
+            </Link>
+
+            <Link href={"/moments"} className={`invisible md:visible h-full grid grid-cols-1 items-center navbar-item ${pathname === "/moments" ? "navbar-item-active" : "" }`}>
+                Moments
             </Link>
 
             <div className='flex-1 flex justify-end'>

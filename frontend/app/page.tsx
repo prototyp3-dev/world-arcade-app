@@ -1,40 +1,47 @@
-import Image from 'next/image'
-import YoutubeVideo from "./components/youtubeVideo";
-import rivesLogo from '../public/rives64px.png';
+import Image from "next/image";
+import Link from 'next/link'
 
+import { cartridges as cartridgerequest } from "@/app/libs/app/lib";
+import { CartridgeInfo } from "./libs/app/ifaces";
+import { cache } from "react";
+import { envClient } from "./utils/clientEnv";
 
-export default function Home() {
-  return (
-    <main>
-      <section id="presentation-section" className="first-section">
-        <div className="flex space-x-2">
-          <Image src={rivesLogo} alt='RiVES logo'/>
-        </div>
+const getCartridges = cache(async () => {
+	const cartridges:Array<CartridgeInfo> = (await cartridgerequest({},{decode:true, cartesiNodeUrl: envClient.CARTESI_NODE_URL,cache:"force-cache"})).data;
 
-        <div className=' max-w-[640px] text-center text-white'>
-          <h2 className='mt-6 text-xl'>
-            Rives is the World Arcade
-          </h2>
+    return cartridges;
+})
 
-          <p className="mt-6">
-            Own cartridges, prove scores & contribute with infinite creativity
-          </p>
-        </div>
+export default async function Home() {
+    const cartridges = await getCartridges();
 
-        <div className='w-11/12 my-16 h-1 rainbow-background'></div>
-
-        <div className="flex items-center justify-center">
-          <YoutubeVideo videoId="7y22pdgGIE0" />
-        </div>
-
-        <a className='mt-10 btn' href={"/cartridges"}>
-          Start Playing
-        </a>
-
-      </section>
-      {/* <section id="statistical-section" className="h-svh">
-        placeholder for statistical info retrieved from DApp
-      </section> */}
-    </main>
-  )
+    return (
+        <main>
+            <section>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {
+                        cartridges.map((cartridge) => {
+                            return (
+                                <Link key={cartridge.id} href={`/cartridge/${cartridge.id}`}>
+                                    <div className="p-4 element border border-transparent hover:border-white">
+                                        <div className="text-lg">
+                                            {cartridge.name.toUpperCase()}
+                                        </div>
+                                        
+                                        <div className="relative h-64 w-full">
+                                            <Image 
+                                                alt={cartridge.name}
+                                                src={cartridge.cover? `data:image/png;base64,${cartridge.cover}`:""}
+                                                fill={true}
+                                            />
+                                        </div>
+                                    </div>                                
+                                </Link>
+                            )
+                        })
+                    }
+                </div>
+            </section>
+        </main>
+    );
 }

@@ -1,10 +1,9 @@
 import { init } from '@web3-onboard/react'
 import injectedModule from '@web3-onboard/injected-wallets'
-import { envClient } from './clientEnv'
 
 
 const chain = {
-  id: envClient.NETWORK_CHAIN_ID
+  id: "0x7A69"
 }
 
 
@@ -13,9 +12,8 @@ const chains = [chain]
 const wallets = [injectedModule()]
 
 const appMetadata = {
-  name: 'RiVES',
-  icon: '<svg>My App Icon</svg>',
-  description: 'RiVES allows users to play riscv-binaries of games on a RISC-V Cartesi Machine on the browser. The game moves are submited onchain so the session can be replayed in a Cartesi Rollups DApp to generate a provable score.',
+  name: 'Achievements',
+  description: 'Gotta get them all.',
   recommendedInjectedWallets: [
     { name: 'MetaMask', url: 'https://metamask.io' },
     { name: 'Coinbase', url: 'https://wallet.coinbase.com/' }

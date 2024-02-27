@@ -5,6 +5,7 @@ from typing import Optional, List
 from hashlib import sha256
 import json
 from py_expression_eval import Parser
+import base64
 
 from cartesi.abi import String, Bytes, Bytes32, Int, UInt, Address
 
@@ -52,6 +53,7 @@ class CreateAchievementsPayload(BaseModel):
 class AchievementsPayload(BaseModel):
     cartridge_id:   Optional[str]
     user_address:   Optional[str]
+    name:           Optional[str]
     order_by:       Optional[str]
     order_dir:      Optional[str]
     page:           Optional[int]
@@ -305,6 +307,9 @@ def achievements(payload: AchievementsPayload) -> bool:
     if payload.user_address is not None:
         achievements_query = achievements_query.filter(lambda r: payload.user_address.lower() == r.user_address)
 
+    if payload.name is not None:
+        achievements_query = achievements_query.filter(lambda r: payload.name in r.name)
+
     total = achievements_query.count()
 
     if payload.order_by is not None:
@@ -331,6 +336,7 @@ def achievements(payload: AchievementsPayload) -> bool:
         achievement_dict = achievement.to_dict()
         if payload.player is not None:
             achievement_dict["player_achieved"] = helpers.count(u for u in achievement.users if u.user_address == payload.player.lower()) > 0
+        if achievement.icon is not None: achievement_dict['icon'] = base64.b64encode(achievement.icon)
         dict_list_result.append(achievement_dict)
 
     LOGGER.info(f"Returning {len(dict_list_result)} of {total} Achivemens")
@@ -356,6 +362,7 @@ def achievement_info(payload: AchievementPayload) -> bool:
             user_achievements.append(user_achievement_dict)
 
         achievement_dict['users'] = user_achievements
+        if achievement.icon is not None: achievement_dict['icon'] = base64.b64encode(achievement.icon)
 
         achievement_dict['total_cartridge_players'] = helpers.count(r.user_address for r in Gameplay if r.cartridge_id == achievement.cartridge_id)
 

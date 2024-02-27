@@ -1,5 +1,5 @@
 base58==2.1.1
-cartesapp @ git+https://github.com/prototyp3-dev/cartesapp@7f62c7d11812e9f4db1eb5fc94649518441ea55d
+cartesapp @ git+https://github.com/prototyp3-dev/cartesapp@8a1bdf4a38dae3cabfd22377528dbd218e0fd8ef
 certifi==2024.2.2
 charset-normalizer==3.3.2
 click==8.1.7
@@ -24,7 +24,7 @@ pycryptodome==3.19.1
 pydantic==1.10.14
 pydantic-to-typescript==1.0.10
 pytest==7.4.4
-python-cartesi==0.1.0
+python-cartesi==0.1.1
 regex==2023.12.25
 requests==2.31.0
 tomli==2.0.1

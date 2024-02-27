@@ -20,6 +20,7 @@ from app.common import get_cid
 
 from .common import Bytes32List, Gameplay, Achievement, UserAchievement
 from .riv import replay_hist, replay_screenshot
+from .achievement import AchievementInfo, UserAchievementInfo
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,9 +30,6 @@ LOGGER = logging.getLogger(__name__)
 # Model
 
 # Inputs
-
-# class Replay(BaseModel):
-#     cartridge_id:   Bytes32
 
 class GameplaysPayload(BaseModel):
     cartridge_id:   Optional[str]
@@ -45,26 +43,6 @@ class GameplayPayload(BaseModel):
     id: str
 
 # Outputs
-
-class UserAchievementInfo(BaseModel):
-    user_address: String
-    timestamp: UInt
-    frame: UInt
-    index: UInt
-    achievement_id: Optional[str]
-    achievement_name: Optional[str]
-    achievement_description: Optional[str]
-    achievement_icon: Optional[str]
-
-class AchievementInfo(BaseModel):
-    id: String
-    name: String
-    description: String
-    expression: String
-    created_by: String
-    created_at: UInt
-    icon: Optional[str]
-    users: Optional[List[UserAchievementInfo]]
 
 class MomentInfo(BaseModel):
     id: String
@@ -104,7 +82,7 @@ def gameplays(payload: GameplaysPayload) -> bool:
         gameplays_query = gameplays_query.filter(lambda r: payload.cartridge_id == r.cartridge_id)
 
     if payload.user_address is not None:
-        gameplays_query = gameplays_query.filter(lambda r: payload.user_address == r.user_address)
+        gameplays_query = gameplays_query.filter(lambda r: payload.user_address.lower() == r.user_address)
 
     total = gameplays_query.count()
 

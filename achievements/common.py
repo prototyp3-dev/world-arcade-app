@@ -8,16 +8,12 @@ from cartesapp.setup import setup
 from cartesapp.utils import uint2hex256
 
 
-def hash_class(s):
-    return hash(s.name)
-
-setattr(ABIType, "__hash__", hash_class)
-
 UInt256List = Annotated[List[int], ABIType('uint256[]')]
 Int256List = Annotated[List[int], ABIType('int256[]')]
 Bytes32List = Annotated[List[bytes], ABIType('bytes32[]')]
 StringList = Annotated[List[str], ABIType('string[]')]
 
+Bytes32Optional = Annotated[Optional[bytes], ABIType('bytes32')]
 
 
 ###

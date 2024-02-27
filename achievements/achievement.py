@@ -11,14 +11,14 @@ from cartesi.abi import String, Bytes, Bytes32, Int, UInt, Address
 from cartesapp.storage import helpers
 from cartesapp.context import get_metadata
 from cartesapp.input import mutation, query
-from cartesapp.output import add_output, event, emit_event
+from cartesapp.output import add_output, event, emit_event, output
 from cartesapp.utils import bytes2str, str2bytes, hex2bytes
 
 from app.cartridge import Cartridge
 from app.replay import Replay
 from app.common import get_cid
 
-from .common import Bytes32List, Gameplay, Achievement, UserAchievement
+from .common import Bytes32List, Gameplay, Achievement, UserAchievement, Bytes32Optional
 from .riv import replay_hist, replay_screenshot
 
 LOGGER = logging.getLogger(__name__)
@@ -30,12 +30,9 @@ LOGGER = logging.getLogger(__name__)
 
 # Inputs
 
-# class Replay(BaseModel):
-#     cartridge_id:   Bytes32
-
 class ReplayAchievements(BaseModel):
     cartridge_id:   Bytes32
-    outcard_hash:   Bytes32
+    outcard_hash:   Bytes32Optional = None
     args:           String
     in_card:        Bytes
     log:            Bytes
@@ -47,16 +44,24 @@ class CreateAchievementsPayload(BaseModel):
     description:    String
     expression:     String
     icon:           Bytes
-    outcard_hash:   Bytes32
+    outcard_hash:   Bytes32Optional = None
     args:           String
     in_card:        Bytes
     log:            Bytes
 
-# Outputs
+class AchievementsPayload(BaseModel):
+    cartridge_id:   Optional[str]
+    user_address:   Optional[str]
+    order_by:       Optional[str]
+    order_dir:      Optional[str]
+    page:           Optional[int]
+    page_size:      Optional[int]
+    player:         Optional[str]
 
-# @event()
-# class ReplayScore(BaseModel):
-#     cartridge_id:   Bytes32
+class AchievementPayload(BaseModel):
+    id: str
+
+# Outputs
 
 @event()
 class AcquiredAchievement(BaseModel):
@@ -69,6 +74,36 @@ class AcquiredAchievement(BaseModel):
     index:          UInt
     cid:            String = ''
 
+class UserAchievementInfo(BaseModel):
+    user_address: String
+    timestamp: UInt
+    frame: UInt
+    index: UInt
+    gameplay_id: Optional[str]
+    achievement_id: Optional[str]
+    achievement_name: Optional[str]
+    achievement_description: Optional[str]
+    achievement_icon: Optional[str]
+
+@output()
+class AchievementInfo(BaseModel):
+    id: String
+    name: String
+    description: String
+    expression: String
+    created_by: String
+    created_at: UInt
+    icon: Optional[str]
+    users: Optional[List[UserAchievementInfo]]
+    player_achieved: Optional[bool]
+    total_cartridge_players: Optional[int]
+
+@output()
+class AchievementsOutput(BaseModel):
+    data:   List[AchievementInfo]
+    total:  UInt
+    page:   UInt
+
 
 ###
 # Mutations
@@ -79,7 +114,7 @@ def replay(payload: Replay) -> bool:
     metadata = get_metadata()
     gameplay_hash = sha256(payload.log)
 
-    user_address = metadata.msg_sender
+    user_address = metadata.msg_sender.lower()
 
     # check if gameplay already exists
     gameplay = helpers.select(r for r in Gameplay if r.id == gameplay_hash.hexdigest()).first()
@@ -109,7 +144,6 @@ def replay(payload: Replay) -> bool:
     )
     # TODO: index use gameplay from input, so we don't add to the output
     add_output(payload.log,tags=['payload',payload.cartridge_id.hex(),gameplay_hash.hexdigest()])
-
 
     # evaluate gameplay achievements
     #   runs gameplay and get hist
@@ -145,7 +179,7 @@ def achievements_replay(payload: ReplayAchievements) -> bool:
         gameplay = Gameplay(
             id                  = gameplay_hash.hexdigest(),
             cartridge_id        = payload.cartridge_id.hex(),
-            user_address        = metadata.msg_sender,
+            user_address        = metadata.msg_sender.lower(),
             timestamp           = metadata.timestamp,
             args_hash           = sha256(str2bytes(payload.args)).hexdigest(),
             in_card_hash        = sha256(payload.in_card).hexdigest(),
@@ -207,7 +241,7 @@ def create_achievement(payload: CreateAchievementsPayload) -> bool:
         name            = payload.name,
         description     = payload.description,
         cartridge_id    = cartridge.id,
-        created_by      = metadata.msg_sender,
+        created_by      = metadata.msg_sender.lower(),
         created_at      = metadata.timestamp,
         expression      = payload.expression,
         icon            = payload.icon
@@ -219,7 +253,7 @@ def create_achievement(payload: CreateAchievementsPayload) -> bool:
         gameplay = Gameplay(
             id                  = gameplay_hash.hexdigest(),
             cartridge_id        = payload.cartridge_id.hex(),
-            user_address        = metadata.msg_sender,
+            user_address        = metadata.msg_sender.lower(),
             timestamp           = metadata.timestamp,
             args_hash           = sha256(str2bytes(payload.args)).hexdigest(),
             in_card_hash        = sha256(payload.in_card).hexdigest(),
@@ -259,11 +293,80 @@ def create_achievement(payload: CreateAchievementsPayload) -> bool:
 ###
 # Queries
 
-# gameplay list
-
 # achievement list
 
+@query()
+def achievements(payload: AchievementsPayload) -> bool:
+    achievements_query = Achievement.select()
+
+    if payload.cartridge_id is not None:
+        achievements_query = achievements_query.filter(lambda r: payload.cartridge_id == r.cartridge_id)
+
+    if payload.user_address is not None:
+        achievements_query = achievements_query.filter(lambda r: payload.user_address.lower() == r.user_address)
+
+    total = achievements_query.count()
+
+    if payload.order_by is not None:
+        dir_order = lambda d: d
+        if payload.order_dir is not None and payload.order_dir == 'desc':
+            dir_order = helpers.desc
+        if payload.order_by == 'popular':
+            achievements_query = achievements_query.order_by(lambda r: dir_order(helpers.count(r.users)))
+        else:
+            achievements_query = achievements_query.order_by(dir_order(getattr(Achievement,payload.order_by)))
+
+    page = 1
+    if payload.page is not None:
+        page = payload.page
+        if payload.page_size is not None:
+            achievements = achievements_query.page(payload.page,payload.page_size)
+        else:
+            achievements = achievements_query.page(payload.page)
+    else:
+        achievements = achievements_query.fetch()
+    
+    dict_list_result = []
+    for achievement in achievements:
+        achievement_dict = achievement.to_dict()
+        if payload.player is not None:
+            achievement_dict["player_achieved"] = helpers.count(u for u in achievement.users if u.user_address == payload.player.lower()) > 0
+        dict_list_result.append(achievement_dict)
+
+    LOGGER.info(f"Returning {len(dict_list_result)} of {total} Achivemens")
+    
+    out = AchievementsOutput.parse_obj({'data':dict_list_result,'total':total,'page':page})
+    add_output(out)
+
+    return True
+
 # achievement info
+
+@query()
+def achievement_info(payload: AchievementPayload) -> bool:
+    achievement = helpers.select(r for r in Achievement if r.id == payload.id).first()
+
+    if achievement is not None:
+        achievement_dict = achievement.to_dict()
+        
+        user_achievements = []
+        for user_achievement in achievement.users:
+            user_achievement_dict = user_achievement.to_dict()
+            user_achievement_dict['gameplay_id'] = user_achievement.gameplay.id
+            user_achievements.append(user_achievement_dict)
+
+        achievement_dict['users'] = user_achievements
+
+        achievement_dict['total_cartridge_players'] = helpers.count(r.user_address for r in Gameplay if r.cartridge_id == achievement.cartridge_id)
+
+        out = AchievementInfo.parse_obj(achievement_dict)
+        add_output(out)
+    else:
+        add_output("null")
+
+    LOGGER.info(f"Returning achievement {payload.id} info")
+
+    return True
 
 ###
 # Helpers
@@ -280,14 +383,17 @@ def evaluate_gameplay_achievements(cartridge_id, log, args, in_card, replay_outc
     except Exception as e:
         raise Exception(f"Couldn't replay log: {e}")
 
-    outcard_valid = outhash == replay_outcard_hash
-
     # process outhist
     
     try:
         outhist = json.loads(outhist_raw)
     except Exception as e:
         raise Exception(f"Couldn't convert outhist to json: {e}")
+
+    if replay_outcard_hash == b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+        replay_outcard_hash = outhash
+
+    outcard_valid = outhash == replay_outcard_hash
 
     LOGGER.info("==== OUTCARD ====")
     LOGGER.info(f"Expected Outcard Hash: {replay_outcard_hash.hex()}")

@@ -2,7 +2,7 @@
 # Cartesapp Framework settings
 
 # Files with definitions to import
-FILES = ['replay','achievements'] # * Required
+FILES = ['achievement','gameplay'] # * Required
 
 # Index outputs in inspect indexer queries
 INDEX_OUTPUTS = False # Defaul: False

@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, cache, useEffect, useState } from "react";
+import { Fragment, cache, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Combobox, Transition } from '@headlessui/react'
 import { CartridgeInfo } from "@/app/libs/app/ifaces";
@@ -43,6 +43,7 @@ export default function CreateAchievement({ params }: { params: { cartridge_id?:
     const [name, setName] = useState("");
     const [formula, setFormula] = useState("");
     const [description, setDescription] = useState("");
+    const [gameplay, setGameplay] = useState<Uint8Array|null>(null);
     const [image, setImage] = useState<Uint8Array|null>(null);
     const [coverImagePreview, setCoverImagePreview] = useState<any|null>(null)
     const [cartridges, setCartridges] = useState<Array<CartridgeInfo>>([]);
@@ -89,6 +90,18 @@ export default function CreateAchievement({ params }: { params: { cartridge_id?:
 
     const handleDescriptionChange = (event:React.FormEvent<HTMLTextAreaElement>) => {
         setDescription(event.currentTarget.value);
+    }
+
+    const handleGameplayChange = (event:any) => {
+        const reader = new FileReader();
+        reader.onload = async (readerEvent) => {
+            const data = readerEvent.target?.result;
+            if (data) {
+                setGameplay(new Uint8Array(data as ArrayBuffer));
+                event.target.value = null;
+            }
+        };
+        reader.readAsArrayBuffer(event.target.files[0])
     }
 
     function handleImageChange(e:React.ChangeEvent<HTMLInputElement>) {
@@ -197,21 +210,33 @@ export default function CreateAchievement({ params }: { params: { cartridge_id?:
                             <div className="grid grid-cols-2">
                                 <div className="me-4">
                                     <label htmlFor="name">Achievement Name</label>
-                                    <input id="name" className="rounded w-full" value={name} onChange={handleNameChange}>
+                                    <input id="name" className="rounded w-full text-black" value={name} onChange={handleNameChange}>
                                     </input>
                                 </div>
 
                                 <div>
                                     <label htmlFor="formula">Achievement Formula</label>
-                                    <input id="formula" className="rounded w-full" value={formula} onChange={handleFormulaChange}>
+                                    <input id="formula" className="rounded w-full text-black" value={formula} onChange={handleFormulaChange}>
                                     </input>                            
                                 </div>
                             </div>
 
                             <div className="flex flex-col">
                                 <label htmlFor="description">Achievement Description</label>
-                                <textarea id="description" className="rounded" value={description} onChange={handleDescriptionChange}>
+                                <textarea id="description" className="rounded text-black" value={description} onChange={handleDescriptionChange}>
                                 </textarea>
+                            </div>
+
+                            <div className="flex flex-col">
+                                <label className="" htmlFor="rivlog_file_input">Gameplay File</label>
+                                <input accept=".rivlog" className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50"
+                                aria-describedby="rivlog-file"
+                                id="rivlog_file_input"
+                                type="file"
+                                onChange={handleGameplayChange}
+                                />
+                                <p className="mt-1 text-sm text-gray-500" id="file_input_help">A gameplay log proving the achievement is feasible</p>
+
                             </div>
 
                             <div className="flex flex-col">

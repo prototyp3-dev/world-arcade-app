@@ -45,7 +45,7 @@ const getCartridges = cache(async () => {
 
 export default function CreateAchievementForm({ cartridge_id }:{cartridge_id?:string}) {
     const [name, setName] = useState("");
-    const [formula, setFormula] = useState("");
+    const [expression, setExpression] = useState("");
     const [description, setDescription] = useState("");
     const [gameplay, setGameplay] = useState<Uint8Array|null>(null);
     const [image, setImage] = useState<Uint8Array|null>(null);
@@ -53,7 +53,7 @@ export default function CreateAchievementForm({ cartridge_id }:{cartridge_id?:st
     const [cartridges, setCartridges] = useState<Array<CartridgeInfo>>([]);
     const [creatingAchievement, setCreatingAchievement] = useState(false);
 
-    const [{ wallet }, connect] = useConnectWallet();
+    const [{ wallet }] = useConnectWallet();
 
     console.log(gameplay)
 
@@ -73,7 +73,7 @@ export default function CreateAchievementForm({ cartridge_id }:{cartridge_id?:st
                 .includes(query.toLowerCase().replace(/\s+/g, ''))
             )
 
-    const isSubmitDisabled = selected.id.length == 0 || !gameplay || name.length == 0 || formula.length == 0 || description.length == 0? true:false;
+    const isSubmitDisabled = selected.id.length == 0 || !gameplay || name.length == 0 || expression.length == 0 || description.length == 0? true:false;
 
     useEffect(() => {
         getCartridges().then((cartridgeList) => {
@@ -94,8 +94,8 @@ export default function CreateAchievementForm({ cartridge_id }:{cartridge_id?:st
         setName(event.currentTarget.value);
     }
 
-    const handleFormulaChange = (event:React.FormEvent<HTMLInputElement>) => {
-        setFormula(event.currentTarget.value);
+    const handleExpressionChange = (event:React.FormEvent<HTMLInputElement>) => {
+        setExpression(event.currentTarget.value);
     }
 
     const handleDescriptionChange = (event:React.FormEvent<HTMLTextAreaElement>) => {
@@ -139,20 +139,24 @@ export default function CreateAchievementForm({ cartridge_id }:{cartridge_id?:st
 
         const signer = new ethers.providers.Web3Provider(wallet.provider, 'any').getSigner();
         const logHexString = ethers.utils.hexlify(gameplay);
-        const imageHexString = image? ethers.utils.hexlify(image):"";
+        const imageHexString = image? ethers.utils.hexlify(image):"0x";
 
         setCreatingAchievement(true);
-        await createAchievement(signer, envClient.DAPP_ADDR, {
-            cartridge_id: selected.id,
-            name: name,
-            expression: formula,
-            description: description,
-            log: logHexString,
-            icon: imageHexString,
-            args: "",
-            in_card: "0x",
-            outcard_hash: ""
-        }, {cartesiNodeUrl: envClient.CARTESI_NODE_URL, sync: false})
+        try {
+            await createAchievement(signer, envClient.DAPP_ADDR, {
+                cartridge_id: "0x"+selected.id,
+                name: name,
+                expression: expression,
+                description: description,
+                log: logHexString,
+                icon: imageHexString,
+                args: "",
+                in_card: "0x",
+                outcard_hash: "0x0000000000000000000000000000000000000000000000000000000000000000"
+            }, {cartesiNodeUrl: envClient.CARTESI_NODE_URL, sync: false})    
+        } catch (error) {
+            alert((error as Error).message);
+        }
         setCreatingAchievement(false);
     }
 
@@ -249,8 +253,8 @@ export default function CreateAchievementForm({ cartridge_id }:{cartridge_id?:st
                         </div>
 
                         <div>
-                            <label htmlFor="formula">Achievement Formula</label>
-                            <input id="formula" className="rounded w-full text-black" value={formula} onChange={handleFormulaChange}>
+                            <label htmlFor="expression">Achievement Expression</label>
+                            <input id="expression" className="rounded w-full text-black" value={expression} onChange={handleExpressionChange}>
                             </input>                            
                         </div>
                     </div>
@@ -275,7 +279,7 @@ export default function CreateAchievementForm({ cartridge_id }:{cartridge_id?:st
 
                     <div className="flex flex-col">
                         <label className="" htmlFor="file_input">Achievement Image (optional)</label>
-                        <input accept="image/png, image/jpg" className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50"
+                        <input accept="image/*" className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50"
                         aria-describedby="file_input_help"
                         id="file_input"
                         type="file"

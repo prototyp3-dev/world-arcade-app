@@ -1,21 +1,24 @@
 import AddIcon from '@mui/icons-material/Add';
-import Link from 'next/link'
 import Image from "next/image";
-import { achievementsMockDict } from '../utils/mocks';
-import { delay } from '../utils/util';
+import { cache } from 'react';
+
+import { achievements } from '../libs/achievements/lib';
+import { AchievementInfo } from '../libs/achievements/ifaces';
+import { envClient } from '../utils/clientEnv';
 
 
-const getAchievements = async(id:string) => {
-    await delay(1500);
-
+const getAchievements = cache(async(id:string) => {
+    let achievementList:Array<AchievementInfo>;
     if (id.length == 0) {
         // get all achievements
+        achievementList = (await achievements({}, {cartesiNodeUrl: envClient.CARTESI_NODE_URL, decode: true})).data;
     } else {
         // get achievements for a specific cartridge
+        achievementList = (await achievements({cartridge_id: id}, {cartesiNodeUrl: envClient.CARTESI_NODE_URL, decode: true})).data;
     }
 
-    return achievementsMockDict.get(id);
-}
+    return achievementList;
+})
 
 
 
@@ -26,25 +29,25 @@ export default async function CartridgeAchievements({cartridge_id}:{cartridge_id
 
     return (
         <div className="element rounded grid grid-cols-6 items-center justify-items-center">
-            <Link className="flex flex-col items-center p-4 text-center hover-color" href={`/achievement/create/${selectedCartridgeId}`}>
+            <a className="flex flex-col items-center p-4 text-center hover-color" href={`/achievement/create/${selectedCartridgeId}`}>
                 <div className="border-4 rounded-full">
                     <AddIcon style={{width: "128px", height: "128px"}}/>
                 </div>
                 <span className="text-2xl">Create Achievement</span>
-            </Link>
+            </a>
 
             {
-                achievements?.map((achievement, index) => {
+                achievements.map((achievement, index) => {
                     return (
-                        <Link className="flex flex-col items-center p-4 text-center hover-color" href={`/achievement/${achievement.id}`}>
+                        <a key={achievement.id} className="flex flex-col items-center p-4 text-center hover-color" href={`/achievement/${achievement.id}`}>
                             <Image className="rounded-full border-4"
                                 alt={achievement.name}
-                                src={`/made_it_symbol_trans.jpg`}
+                                src={achievement.icon? `data:image/png;base64,${achievement.icon}`:"/made_it_symbol_trans.png"}
                                 width={128}
                                 height={128}
                             />
                             <span className="text-2xl">{achievement.name}</span>
-                        </Link>
+                        </a>
                     )
                 })
             }

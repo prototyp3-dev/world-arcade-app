@@ -56,7 +56,7 @@ class Achievement(Entity):
     created_by      = helpers.Required(str, 42)
     created_at      = helpers.Required(int)
     expression      = helpers.Required(str)
-    icon            = helpers.Optional(bytes, lazy=True)
+    icon            = helpers.Optional(bytes)
     users           = helpers.Set("UserAchievement", lazy=True)
 
 class UserAchievement(Entity):

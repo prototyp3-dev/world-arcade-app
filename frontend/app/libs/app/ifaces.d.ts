@@ -6,26 +6,39 @@
  */
 
 export interface _Master_ {
-  CartridgeRemoved: CartridgeRemoved;
-  CartridgeInfo: CartridgeInfo;
-  CartridgesOutput: CartridgesOutput;
-  CartridgePayload: CartridgePayload;
-  ScoreboardsOutput: ScoreboardsOutput;
-  ScoreboardReplayScore: ScoreboardReplayScore;
-  ScoreboardRemoved: ScoreboardRemoved;
-  ReplayScore: ReplayScore;
   CartridgeInserted: CartridgeInserted;
-  ScoreboardCreated: ScoreboardCreated;
-  ScoresOutput: ScoresOutput;
-  Replay: Replay;
-  CartridgePayloadSplittable: CartridgePayloadSplittable;
   CartridgesPayload: CartridgesPayload;
   RemoveCartridgePayload: RemoveCartridgePayload;
+  CartridgePayload: CartridgePayload;
+  CartridgeInfo: CartridgeInfo;
+  CartridgesOutput: CartridgesOutput;
+  ScoreboardsOutput: ScoreboardsOutput;
+  ScoreboardReplayScore: ScoreboardReplayScore;
+  Replay: Replay;
+  ScoreboardRemoved: ScoreboardRemoved;
+  ReplayScore: ReplayScore;
+  ScoresOutput: ScoresOutput;
+  ScoreboardCreated: ScoreboardCreated;
   InserCartridgePayload: InserCartridgePayload;
+  CartridgePayloadSplittable: CartridgePayloadSplittable;
+  CartridgeRemoved: CartridgeRemoved;
 }
-export interface CartridgeRemoved {
+export interface CartridgeInserted {
   cartridge_id: string;
+  user_address: string;
   timestamp: number;
+}
+export interface CartridgesPayload {
+  name?: string;
+  tags?: string[];
+  page?: number;
+  page_size?: number;
+}
+export interface RemoveCartridgePayload {
+  id: string;
+}
+export interface CartridgePayload {
+  id: string;
 }
 export interface CartridgeInfo {
   id: string;
@@ -54,9 +67,6 @@ export interface CartridgesOutput {
   total: number;
   page: number;
 }
-export interface CartridgePayload {
-  id: string;
-}
 export interface ScoreboardsOutput {
   data: ScoreboardInfo[];
   total: number;
@@ -84,6 +94,14 @@ export interface ScoreboardReplayScore {
   screenshot_cid?: string;
   gameplay_hash: string;
 }
+export interface Replay {
+  cartridge_id: string;
+  outcard_hash: string;
+  args: string;
+  in_card: string;
+  log: string;
+  user_alias: string;
+}
 export interface ScoreboardRemoved {
   scoreboard_id: string;
   timestamp: number;
@@ -100,16 +118,6 @@ export interface ReplayScore {
   screenshot_cid?: string;
   gameplay_hash: string;
 }
-export interface CartridgeInserted {
-  cartridge_id: string;
-  user_address: string;
-  timestamp: number;
-}
-export interface ScoreboardCreated {
-  scoreboard_id: string;
-  created_by: string;
-  created_at: number;
-}
 export interface ScoresOutput {
   data: ScoreInfo[];
   total: number;
@@ -120,27 +128,19 @@ export interface ScoreInfo {
   timestamp: number;
   score: number;
 }
-export interface Replay {
-  cartridge_id: string;
-  outcard_hash: string;
-  args: string;
-  in_card: string;
-  log: string;
-  user_alias: string;
+export interface ScoreboardCreated {
+  scoreboard_id: string;
+  created_by: string;
+  created_at: number;
+}
+export interface InserCartridgePayload {
+  data: string;
 }
 export interface CartridgePayloadSplittable {
   id: string;
   part?: number;
 }
-export interface CartridgesPayload {
-  name?: string;
-  tags?: string[];
-  page?: number;
-  page_size?: number;
-}
-export interface RemoveCartridgePayload {
-  id: string;
-}
-export interface InserCartridgePayload {
-  data: string;
+export interface CartridgeRemoved {
+  cartridge_id: string;
+  timestamp: number;
 }

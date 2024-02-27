@@ -386,11 +386,11 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
                                 </button>
                         }
 
-                        <button disabled={!isPlaying} title='Restart' className={`element p-2 rounded-full ${isPlaying? "hover-color":""}`} onClick={rivemuStart}>
+                        <button disabled={!isPlaying} title='Restart' className={`element p-2 rounded-full ${isPlaying? "hover-color":"btn-disabled"}`} onClick={rivemuStart}>
                             <RestartAltIcon/>
                         </button>
 
-                        <button disabled={!isPlaying} title='Fullscreen' className={`element p-2 rounded-full ${isPlaying? "hover-color":""}`} onKeyDown={() => null} onKeyUp={() => null} onClick={rivemuFullscreen}>
+                        <button disabled={!isPlaying} title='Fullscreen' className={`element p-2 rounded-full ${isPlaying? "hover-color":"btn-disabled"}`} onKeyDown={() => null} onKeyUp={() => null} onClick={rivemuFullscreen}>
                             <FullscreenIcon/>
                         </button>
 
@@ -398,15 +398,15 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
                             Log Controls
                         </span>
 
-                        <button disabled={!cartridgeGameplay} title='Replay' className={`element p-2 rounded-full ${isPlaying? "hover-color":""}`}>
+                        <button disabled={!cartridgeGameplay} title='Replay' className={`element p-2 rounded-full ${isPlaying? "hover-color":"btn-disabled"}`}>
                             <ReplayIcon/>
                         </button>
                         
-                        <button disabled={!cartridgeGameplay} className={`text-sm element p-2 rounded-full ${isPlaying? "hover-color":""}`}>
+                        <button disabled={!cartridgeGameplay} className={`text-sm element p-2 rounded-full ${isPlaying? "hover-color":"btn-disabled"}`}>
                             Upload
                         </button>
 
-                        <button disabled={!cartridgeGameplay} className={`text-sm element p-2 rounded-full ${isPlaying? "hover-color":""}`}>
+                        <button disabled={!cartridgeGameplay} className={`text-sm element p-2 rounded-full ${isPlaying? "hover-color":"btn-disabled"}`}>
                             Submit
                         </button>
 

@@ -1,9 +1,13 @@
 "use client"
 
-import { useState } from "react";
+import { Fragment, cache, useEffect, useState } from "react";
 import Image from "next/image";
-
-
+import { Combobox, Transition } from '@headlessui/react'
+import { CartridgeInfo } from "@/app/libs/app/ifaces";
+import { cartridges as cartridgerequest } from "@/app/libs/app/lib";
+import { envClient } from "@/app/utils/clientEnv";
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
+import CheckIcon from '@mui/icons-material/Check';
 
 async function handle_file_input(e:React.ChangeEvent<HTMLInputElement>, callback:Function) {
     if (!e.target.files || e.target.files.length == 0) {
@@ -28,14 +32,51 @@ async function handle_file_input(e:React.ChangeEvent<HTMLInputElement>, callback
     reader.readAsArrayBuffer(file);
 }
 
+
+const getCartridges = cache(async () => {
+	const cartridges:Array<CartridgeInfo> = (await cartridgerequest({},{decode:true, cartesiNodeUrl: envClient.CARTESI_NODE_URL,cache:"force-cache"})).data;
+
+    return cartridges;
+})
+
 export default function CreateAchievement({ params }: { params: { cartridge_id?: string } }) {
     const [name, setName] = useState("");
     const [formula, setFormula] = useState("");
     const [description, setDescription] = useState("");
     const [image, setImage] = useState<Uint8Array|null>(null);
     const [coverImagePreview, setCoverImagePreview] = useState<any|null>(null)
+    const [cartridges, setCartridges] = useState<Array<CartridgeInfo>>([]);
 
-    const isSubmitDisabled = name.length == 0 || formula.length == 0 || description.length == 0? true:false;
+    // combobox controlers
+    const [selected, setSelected] = useState<CartridgeInfo>({created_at: 0, id: "", name: "", user_address: ""});
+    const [query, setQuery] = useState('');
+
+    const filteredCartridges = query === ''
+        ?
+            cartridges
+        :
+            cartridges.filter((cartridge) => 
+                cartridge.name
+                .toLowerCase()
+                .replace(/\s+/g, '')
+                .includes(query.toLowerCase().replace(/\s+/g, ''))
+            )
+
+    const isSubmitDisabled = selected.id.length == 0 || name.length == 0 || formula.length == 0 || description.length == 0? true:false;
+
+    useEffect(() => {
+        getCartridges().then((cartridgeList) => {
+            setCartridges(cartridgeList);
+
+            const current_id = params.cartridge_id?.toLowerCase();
+            for (let i = 0; i < cartridgeList.length; i++) {
+                if (cartridgeList[i].id.toLowerCase() == current_id) {
+                    setSelected(cartridgeList[i]);
+                    break;
+                }
+            }
+        })
+    }, [])
 
 
     const handleNameChange = (event:React.FormEvent<HTMLInputElement>) => {
@@ -82,6 +123,77 @@ export default function CreateAchievement({ params }: { params: { cartridge_id?:
                     <div className="rounded p-2 w-1/2">
                         <form className="flex flex-col space-y-4 p-4 rounded">
                             <fieldset className="text-3xl">Achievement Creation</fieldset>
+
+                            <div>
+                                <span>Game</span>
+                                <Combobox value={selected} onChange={setSelected}>
+                                    <div className="relative mt-1">
+                                    <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
+                                        <Combobox.Input
+                                        className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+                                        displayValue={(cartridge:CartridgeInfo) => cartridge.name}
+                                        onChange={(event) => setQuery(event.currentTarget.value)}
+                                        />
+                                        <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                        <UnfoldMoreIcon
+                                            className="h-5 w-5 text-gray-400"
+                                            aria-hidden="true"
+                                        />
+                                        </Combobox.Button>
+                                    </div>
+                                    <Transition
+                                        as={Fragment}
+                                        leave="transition ease-in duration-100"
+                                        leaveFrom="opacity-100"
+                                        leaveTo="opacity-0"
+                                        afterLeave={() => setQuery('')}
+                                    >
+                                        <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
+                                        {filteredCartridges.length === 0 && query !== '' ? (
+                                            <div className="relative cursor-default select-none px-4 py-2 text-gray-700">
+                                            Nothing found.
+                                            </div>
+                                        ) : (
+                                            filteredCartridges.map((cartridge) => (
+                                                <Combobox.Option
+                                                    key={cartridge.id}
+                                                    className={({ active }) =>
+                                                    `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                                        active ? 'bg-teal-600 text-white' : 'text-gray-900'
+                                                    }`
+                                                    }
+                                                    value={cartridge}
+                                                >
+                                                    {({ selected, active }) => (
+                                                        <>
+                                                            <span
+                                                            className={`block truncate ${
+                                                                selected ? 'font-medium' : 'font-normal'
+                                                            }`}
+                                                            >
+                                                            {cartridge.name}
+                                                            </span>
+                                                            {selected ? (
+                                                            <span
+                                                                className={`absolute inset-y-0 left-0 flex items-center pl-3 ${
+                                                                active ? 'text-white' : 'text-teal-600'
+                                                                }`}
+                                                            >
+                                                                <CheckIcon />
+                                                            </span>
+                                                            ) : null}
+                                                        </>
+                                                    )}
+                                                </Combobox.Option>
+                                            ))
+                                        )}
+                                        </Combobox.Options>
+                                    </Transition>
+                                    </div>
+                                </Combobox>
+
+                            </div>
+
                             <div className="grid grid-cols-2">
                                 <div className="me-4">
                                     <label htmlFor="name">Achievement Name</label>
@@ -115,7 +227,11 @@ export default function CreateAchievement({ params }: { params: { cartridge_id?:
                             </div>
 
                             <div className="w-full flex justify-end">
-                                <button disabled={isSubmitDisabled} className="p-2 rounded element-inside hover:hover-color" onClick={submitLog}>Submit</button>
+                                <button disabled={isSubmitDisabled}
+                                className={`p-2 rounded element-inside ${isSubmitDisabled?"":"hover:hover-color"}`}
+                                onClick={submitLog}>
+                                    Submit
+                                </button>
                             </div>
                         </form>
                         {/* Create Achievement for cartridge {params.cartridge_id} */}

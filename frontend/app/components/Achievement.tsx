@@ -4,12 +4,10 @@ import Image from "next/image";
 import OndemandVideoIcon from '@mui/icons-material/OndemandVideo';
 import { AchievementInfo } from "@/app/libs/achievements/ifaces";
 
-export default function CartridgeAchievement({achievement}:{achievement:AchievementInfo}) {
+export default function Achievement({achievement}:{achievement:AchievementInfo}) {
     function playReplay(userAchievement: any): void {
         throw new Error("Function not implemented.");
     }
-
-    console.log(achievement.users?.length, achievement.total_cartridge_players)
 
     let obtainedPercentage:number = 0.0;
 

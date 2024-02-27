@@ -6,15 +6,20 @@ import Script from "next/script";
 import {Parser} from 'expr-eval';
 
 
-import { CartridgeInfo } from "@/app/libs/app/ifaces";
+import { CartridgeInfo, Replay } from "@/app/libs/app/ifaces";
 import { cartridge as CartridgeData } from '../libs/app/lib';
+import { replay } from '@/app/libs/app/lib';
 import { envClient } from '../utils/clientEnv';
 
+import { Dialog } from '@headlessui/react'
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import StopIcon from '@mui/icons-material/Stop';
 import ReplayIcon from '@mui/icons-material/Replay';
+import WarningIcon from '@mui/icons-material/Warning';
+import { useConnectWallet } from '@web3-onboard/react';
+import { ContractReceipt, ethers } from 'ethers';
 
 
 const getCartridgeData = cache(async (id:string) => {
@@ -26,8 +31,8 @@ const getCartridgeData = cache(async (id:string) => {
 
 interface Gameplay {
     gameplayLog:Uint8Array,
-    outcard:Uint8Array,
-    outhash:string
+    outcard?:Uint8Array,
+    outhash?:string
 }
 
 function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
@@ -43,39 +48,14 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
 
     const [cartridgeData, setCartridgeData] = useState<Uint8Array | null>(null);
     const [cartridgeGameplay, setCartridgeGameplay] = useState<Gameplay | null>(null);
+    const [{ wallet }] = useConnectWallet();
+    const [isOpen, setIsOpen] = useState(false)
 
     useEffect(() => {
         if (cartridge) initialize();
     }
     ,[cartridge])
 
-    // useEffect(() => {
-    //     if (!isPlaying) {
-    //         rivemuReplay();
-    //     }
-    // }, [replayLog])
-
-    // useEffect(() => {
-    //     if (cancelled) {
-    //         setIsPlaying(false);
-    //         rivemuHalt();
-    //         setOverallScore(0);
-    //         stopCartridge();
-    //     }
-    // }, [cancelled])
-
-    // useEffect(() => {
-    //     interface keyboardEvent {key:string}
-    //     const escPressed = (event: keyboardEvent) => {
-    //         console.log(event, isPlaying);
-    //         if (event.key === "Escape" && !isPlaying) {
-    //             stopCartridge();
-    //         }
-    //     }
-
-    //     document.addEventListener("keydown", escPressed);
-
-    // })
 
     async function initialize() {
         if (!cartridgeData) {
@@ -99,6 +79,49 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
         if (cartridgeData) return;
         const data = await getCartridgeData(cartridge.id);
         setCartridgeData(data);
+    }
+
+    const handleGameplayChange = (event:any) => {
+        const reader = new FileReader();
+        reader.onload = async (readerEvent) => {
+            const data = readerEvent.target?.result;
+            if (data) {
+                setCartridgeGameplay({gameplayLog: new Uint8Array(data as ArrayBuffer)});
+                event.target.value = null;
+            }
+        };
+        reader.readAsArrayBuffer(event.target.files[0])
+    }
+
+    async function submitLog() {
+        if (!wallet) {
+            alert("Connect a wallet first");
+            return;
+        }
+
+        if (!cartridgeGameplay) {
+            alert("Play or upload a gameplay first");
+            return;
+        }
+        
+        const signer = new ethers.providers.Web3Provider(wallet.provider, 'any').getSigner();
+        const inputData: Replay = {
+            cartridge_id: "0x" + cartridge.id,
+            outcard_hash: '0x' + cartridgeGameplay.outhash,
+            args: args || "",
+            in_card: inCard ? ethers.utils.hexlify(inCard) : "0x",
+            log: ethers.utils.hexlify(cartridgeGameplay.gameplayLog),
+            user_alias: ''
+        }
+
+        try {
+            const receipt = await replay(signer, envClient.DAPP_ADDR, inputData, {sync:false, cartesiNodeUrl: envClient.CARTESI_NODE_URL}) as ContractReceipt;
+        } catch(error) {
+            alert((error as Error).message);
+            return;
+        }
+
+        setCartridgeGameplay(null);
     }
 
     if (!cartridge) {
@@ -402,17 +425,55 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
                             <ReplayIcon/>
                         </button>
                         
-                        <button disabled={!cartridgeGameplay} className={`text-sm element p-2 rounded-full ${isPlaying? "hover-color":"btn-disabled"}`}>
+                        <button onClick={()=>setIsOpen(true)} className={`text-sm element p-2 rounded-full hover-color`}>
                             Upload
                         </button>
 
-                        <button disabled={!cartridgeGameplay} className={`text-sm element p-2 rounded-full ${isPlaying? "hover-color":"btn-disabled"}`}>
+                        <button onClick={submitLog} disabled={!cartridgeGameplay} className={`text-sm element p-2 rounded-full ${cartridgeGameplay && !isOpen? "hover-color animate-bounce":"btn-disabled"}`}>
                             Submit
                         </button>
 
                     </div>
                 </div>
             </div>
+
+            <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="fixed z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <Dialog.Panel className="element rounded p-6">
+                    <Dialog.Title className="text-2xl mb-4">Upload a Gameplay File</Dialog.Title>
+                    {
+                        cartridgeGameplay && cartridgeGameplay.outhash?
+                            <Dialog.Description className="mb-4">
+                                <WarningIcon className='text-yellow-500'/> This will override current gameplay log
+                            </Dialog.Description>
+                        :
+                            <></>
+                    }
+
+                    <form className='mb-4'>
+                        <label className="" htmlFor="rivlog_file_input">Gameplay File</label>
+                        <input accept=".rivlog" className="block w-full text-sm text-gray-900 border border-gray-300 rounded cursor-pointer bg-gray-50"
+                        aria-describedby="rivlog-file"
+                        id="rivlog_file_input"
+                        type="file"
+                        onChange={handleGameplayChange}
+                        />
+                    </form>
+
+                    <div className='flex space-x-2 items-center justify-end'>
+                        <button
+                        className='bg-red-500 text-white font-bold uppercase text-sm p-2 border border-red-500 hover:text-red-500 hover:bg-transparent'
+                        onClick={() => setIsOpen(false)}>
+                            Cancel
+                        </button>
+                        <button
+                        disabled={!cartridgeGameplay}
+                        className={`text-white font-bold uppercase text-sm p-2 border ${cartridgeGameplay?"bg-green-500 border-green-500 hover:text-green-500 hover:bg-transparent":"bg-gray-500"}`}
+                        onClick={() => {setIsOpen(false), submitLog()}}>
+                            Submit
+                        </button>
+                    </div>
+                </Dialog.Panel>
+            </Dialog>
 
             <Script src="/rivemu.js?" strategy="lazyOnload" />
         {/* <div className="opacity-60 fixed inset-0 z-0 bg-black" onClick={() => close()}></div> */}

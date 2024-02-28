@@ -312,7 +312,7 @@ def achievements(payload: AchievementsPayload) -> bool:
         achievement_dict['total_cartridge_players'] = total_cartridge_players[achievement.cartridge_id]
         achievement_dict['total_players_achieved'] = helpers.count(u for u in achievement.users) 
 
-    LOGGER.info(f"Returning {len(dict_list_result)} of {total} Achivemens")
+    LOGGER.info(f"Returning {len(dict_list_result)} of {total} Achivements")
     
     out = AchievementsOutput.parse_obj({'data':dict_list_result,'total':total,'page':page})
     add_output(out)
@@ -327,9 +327,10 @@ def achievement_info(payload: AchievementPayload) -> bool:
 
     if achievement is not None:
         achievement_dict = achievement.to_dict()
-        
+
         user_achievements = []
-        for user_achievement in achievement.users.order_by(lambda r: helpers.desc(helpers.count(r.moments))):
+        # list(achievement.users).sort(key = lambda r: -len(r.moments))
+        for user_achievement in achievement.users:
             user_achievement_dict = user_achievement.to_dict()
             user_achievement_dict['gameplay_id'] = user_achievement.gameplay.id
             user_achievements.append(user_achievement_dict)

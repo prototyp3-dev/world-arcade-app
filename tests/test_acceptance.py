@@ -16,8 +16,9 @@ from cartesapp.wallet.dapp_wallet import DepositErc20Payload
 from app.cartridge import generate_cartridge_id
 from app.replay import Replay
 
-from achievements.achievement import ReplayAchievements, CreateAchievementsPayload, AcquiredAchievement, AchievementsOutput
+from achievements.achievement import ReplayAchievements, CreateAchievementsPayload, AcquiredAchievement, AchievementsOutput, AchievementInfo
 from achievements.gameplay import GameplaysOutput
+from achievements.moment import CollectMomentPayload
 
 import logging
 logger = logging.getLogger(__name__)
@@ -52,6 +53,7 @@ CREATED_ACHIEVEMENT_ID = None
 SECOND_USER = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
 CREATED_GAMEPLAY_ID = None
 
+USER_ACHIEVEMENT_ID = None
 
 @pytest.fixture(scope='session')
 def dapp_client() -> TestClient:
@@ -263,18 +265,132 @@ def test_should_retrieve_new_gameplay(dapp_client: TestClient):
     global CREATED_GAMEPLAY_ID
     CREATED_GAMEPLAY_ID = output.data[0].id
 
-# @pytest.fixture()
-# def create_moment_replay2_payload() -> bytes:
 
-#     # No special frame
-#     model = CreateAchievementsPayload(
-#         cartridge_id    = bytes.fromhex(ANTCOPTER_ID),
-#         outcard_hash    = bytes.fromhex(OUTHASH_BLANK[2:]),
-#         args            = '',
-#         in_card         = b'',
-#         log             = bytes.fromhex(ANTCOPTER_LOG2[2:]),
-#         frame           = 0,
-#         user_achievement= 0
-#     )
+@pytest.mark.order(after="test_should_retrieve_new_achievement")
+def test_should_retrieve_new_achievement_info(dapp_client: TestClient):
 
-#     return encode_model(model, packed=False)
+    path = f'achievements/achievement_info?id={CREATED_ACHIEVEMENT_ID}'
+    inspect_payload = '0x' + path.encode('ascii').hex()
+    dapp_client.send_inspect(hex_payload=inspect_payload)
+
+    assert dapp_client.rollup.status
+
+    report = dapp_client.rollup.reports[-1]['data']['payload']
+    report = bytes.fromhex(report[2:])
+    report = json.loads(report.decode('utf-8'))
+    assert isinstance(report, dict)
+
+    output = AchievementInfo.parse_obj(report)
+
+    assert len(output.users) > 0
+    
+    global USER_ACHIEVEMENT_ID
+    USER_ACHIEVEMENT_ID = output.users[0].id
+
+
+@pytest.fixture()
+def create_moment_replay2_payload() -> bytes:
+
+    # No special frame
+    model = CollectMomentPayload(
+        cartridge_id    = bytes.fromhex(ANTCOPTER_ID),
+        outcard_hash    = bytes.fromhex(OUTHASH_BLANK[2:]),
+        args            = '',
+        in_card         = b'',
+        log             = bytes.fromhex(ANTCOPTER_LOG2[2:]),
+        gameplay_id     = bytes.fromhex(CREATED_GAMEPLAY_ID),
+        frame           = 0,
+        user_achievement= 0
+    )
+
+    return encode_model(model, packed=False)
+
+@pytest.mark.order(after="test_should_create_achievement")
+def test_create_moment_on_replay2(
+        dapp_client: TestClient,
+        create_moment_replay2_payload: bytes):
+
+    header = ABIFunctionSelectorHeader(
+        function="achievements.collect_moment",
+        argument_types=get_abi_types_from_model(CollectMomentPayload)
+    ).to_bytes()
+
+    last_notices_len = len(dapp_client.rollup.notices)
+    hex_payload = '0x' + (header + create_moment_replay2_payload).hex()
+    dapp_client.send_advance(hex_payload=hex_payload)
+
+    assert dapp_client.rollup.status
+
+    assert len(dapp_client.rollup.notices) - last_notices_len == 1
+
+
+@pytest.fixture()
+def create_moment_frame_replay2_payload() -> bytes:
+
+    # special frame
+    model = CollectMomentPayload(
+        cartridge_id    = bytes.fromhex(ANTCOPTER_ID),
+        outcard_hash    = bytes.fromhex(OUTHASH_BLANK[2:]),
+        args            = '',
+        in_card         = b'',
+        log             = bytes.fromhex(ANTCOPTER_LOG2[2:]),
+        gameplay_id     = bytes.fromhex(CREATED_GAMEPLAY_ID),
+        frame           = 200,
+        user_achievement= 0
+    )
+
+    return encode_model(model, packed=False)
+
+@pytest.mark.order(after="test_should_create_achievement")
+def test_create_moment_on_replay2(
+        dapp_client: TestClient,
+        create_moment_frame_replay2_payload: bytes):
+
+    header = ABIFunctionSelectorHeader(
+        function="achievements.collect_moment",
+        argument_types=get_abi_types_from_model(CollectMomentPayload)
+    ).to_bytes()
+
+    last_notices_len = len(dapp_client.rollup.notices)
+    hex_payload = '0x' + (header + create_moment_frame_replay2_payload).hex()
+    dapp_client.send_advance(hex_payload=hex_payload)
+
+    assert dapp_client.rollup.status
+
+    assert len(dapp_client.rollup.notices) - last_notices_len == 1
+
+
+@pytest.fixture()
+def create_moment_achievement_replay2_payload() -> bytes:
+
+    # special frame
+    model = CollectMomentPayload(
+        cartridge_id    = bytes.fromhex(ANTCOPTER_ID),
+        outcard_hash    = bytes.fromhex(OUTHASH_BLANK[2:]),
+        args            = '',
+        in_card         = b'',
+        log             = bytes.fromhex(ANTCOPTER_LOG2[2:]),
+        gameplay_id     = bytes.fromhex(CREATED_GAMEPLAY_ID),
+        frame           = 0,
+        user_achievement= USER_ACHIEVEMENT_ID
+    )
+
+    return encode_model(model, packed=False)
+
+@pytest.mark.order(after="test_should_create_achievement")
+def test_create_moment_on_replay2(
+        dapp_client: TestClient,
+        create_moment_achievement_replay2_payload: bytes):
+
+    header = ABIFunctionSelectorHeader(
+        function="achievements.collect_moment",
+        argument_types=get_abi_types_from_model(CollectMomentPayload)
+    ).to_bytes()
+
+    last_notices_len = len(dapp_client.rollup.notices)
+    hex_payload = '0x' + (header + create_moment_achievement_replay2_payload).hex()
+    dapp_client.send_advance(hex_payload=hex_payload)
+
+    assert dapp_client.rollup.status
+
+    assert len(dapp_client.rollup.notices) - last_notices_len == 1

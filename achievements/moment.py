@@ -27,7 +27,7 @@ LOGGER = logging.getLogger(__name__)
 
 # Inputs
 
-class CollectkMomentPayload(BaseModel):
+class CollectMomentPayload(BaseModel):
     gameplay_id:        Bytes32
     outcard_hash:       Bytes32
     args:               String
@@ -84,7 +84,7 @@ class MomentsOutput(BaseModel):
 # Mutations
 
 @mutation()
-def collect_moment(payload: CollectkMomentPayload) -> bool:
+def collect_moment(payload: CollectMomentPayload) -> bool:
     # mark moment, it will be added to gallery
     
     metadata = get_metadata()
@@ -102,7 +102,7 @@ def collect_moment(payload: CollectkMomentPayload) -> bool:
         return return_error(f"Args and incard don't match to original gameplay",LOGGER)
 
     # expression evaluation
-    total_moments = helpers.count(1 for r in Moment if r.gameplay_id == gameplay.id)
+    total_moments = helpers.count(1 for r in Moment if r.gameplay == gameplay)
     # moment_price = helpers.select(r for r in CartridgeMomentPrice if r.cartridge_id == gameplay.cartridge_id).first()
     # if moment_price is None: return return_error(f"Moment price does not exist",LOGGER)
     # parser = Parser()
@@ -205,7 +205,7 @@ def moments(payload: MomentsPayload) -> bool:
     moments_query = Moment.select()
 
     if payload.cartridge_id is not None:
-        moments_query = moments_query.filter(lambda r: payload.cartridge_id == r.cartridge_id)
+        moments_query = moments_query.filter(lambda r: payload.cartridge_id == r.cartridge)
 
     if payload.user_address is not None:
         moments_query = moments_query.filter(lambda r: payload.user_address.lower() == r.user_address)
@@ -260,7 +260,7 @@ def collect_value(payload: CollectValuePayload) -> bool:
     if moment is None: return return_error(f"Moment does not exist",LOGGER)
 
     # expression evaluation
-    total_moments = helpers.count(1 for r in Moment if r.gameplay_id == moment.gameplay.id)
+    total_moments = helpers.count(1 for r in Moment if r.gameplay == moment.gameplay)
     if total_moments == 0:
         add_output(0)
         return True

@@ -3,6 +3,7 @@ import CartridgeOptions from "@/app/components/CartridgeOptions";
 import { cache } from "react";
 import { CartridgeInfo } from "@/app/libs/app/ifaces";
 import { envClient } from "@/app/utils/clientEnv";
+import CartridgeAchievements from "@/app/components/CartridgeAchievements";
 
 
 
@@ -18,6 +19,11 @@ export default async function Cartridge({ params }: { params: { id: string } }) 
 
     if (!cartridge) return <></>;
 
+    const props = {
+        cartridge:cartridge,
+        children:{achievements:<CartridgeAchievements cartridge_id={cartridge.id} />}
+    }
+
     return (
         <main>
             <section>
@@ -26,7 +32,9 @@ export default async function Cartridge({ params }: { params: { id: string } }) 
                 </div>
 
                 
-                <CartridgeOptions cartridge={cartridge} />            
+                <CartridgeOptions props={props} >
+                    
+                </CartridgeOptions>
             </section>
         </main>
     )

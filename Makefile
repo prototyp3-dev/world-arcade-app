@@ -14,3 +14,9 @@ testimage:
 
 run-testimage:
 	docker run -it --rm --platform=linux/riscv64 watest bash
+
+test-verbose:
+	pytest --capture=no --log-cli-level=DEBUG --maxfail=1
+
+test:
+	pytest --capture=no --maxfail=1

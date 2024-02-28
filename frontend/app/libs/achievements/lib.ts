@@ -69,6 +69,28 @@ export async function createAchievement(
  * Queries/Inspects
  */
 
+export async function achievements(
+    inputData: ifaces.AchievementsPayload,
+    options?:QueryOptions
+):Promise<InspectReport|any> {
+    const route = 'achievements/achievements';
+    const data: AchievementsPayload = new AchievementsPayload(inputData);
+    const output: InspectReport = await genericInspect<ifaces.AchievementsPayload>(data,route,options);
+    if (options?.decode) { return decodeToModel(output,options.decodeModel || "json"); }
+    return output;
+}
+
+export async function achievementInfo(
+    inputData: ifaces.AchievementPayload,
+    options?:QueryOptions
+):Promise<InspectReport|any> {
+    const route = 'achievements/achievement_info';
+    const data: AchievementPayload = new AchievementPayload(inputData);
+    const output: InspectReport = await genericInspect<ifaces.AchievementPayload>(data,route,options);
+    if (options?.decode) { return decodeToModel(output,options.decodeModel || "json"); }
+    return output;
+}
+
 export async function gameplays(
     inputData: ifaces.GameplaysPayload,
     options?:QueryOptions
@@ -128,16 +150,38 @@ export function exportToCreateAchievementsPayload(data: ifaces.CreateAchievement
     return dataToExport.export();
 }
 
+export class GameplaysPayload extends IOData<ifaces.GameplaysPayload> { constructor(data: ifaces.GameplaysPayload, validate: boolean = true) { super(models['GameplaysPayload'],data,validate); } }
+export function exportToGameplaysPayload(data: ifaces.GameplaysPayload): string {
+    const dataToExport: GameplaysPayload = new GameplaysPayload(data);
+    return dataToExport.export();
+}
+
+export class AchievementsPayload extends IOData<ifaces.AchievementsPayload> { constructor(data: ifaces.AchievementsPayload, validate: boolean = true) { super(models['AchievementsPayload'],data,validate); } }
+export function exportToAchievementsPayload(data: ifaces.AchievementsPayload): string {
+    const dataToExport: AchievementsPayload = new AchievementsPayload(data);
+    return dataToExport.export();
+}
+
+export class AchievementPayload extends IOData<ifaces.AchievementPayload> { constructor(data: ifaces.AchievementPayload, validate: boolean = true) { super(models['AchievementPayload'],data,validate); } }
+export function exportToAchievementPayload(data: ifaces.AchievementPayload): string {
+    const dataToExport: AchievementPayload = new AchievementPayload(data);
+    return dataToExport.export();
+}
+
 export class GameplayPayload extends IOData<ifaces.GameplayPayload> { constructor(data: ifaces.GameplayPayload, validate: boolean = true) { super(models['GameplayPayload'],data,validate); } }
 export function exportToGameplayPayload(data: ifaces.GameplayPayload): string {
     const dataToExport: GameplayPayload = new GameplayPayload(data);
     return dataToExport.export();
 }
 
-export class GameplaysPayload extends IOData<ifaces.GameplaysPayload> { constructor(data: ifaces.GameplaysPayload, validate: boolean = true) { super(models['GameplaysPayload'],data,validate); } }
-export function exportToGameplaysPayload(data: ifaces.GameplaysPayload): string {
-    const dataToExport: GameplaysPayload = new GameplaysPayload(data);
-    return dataToExport.export();
+export class AchievementInfo extends Output<ifaces.AchievementInfo> { constructor(output: CartesiReport | InspectReport) { super(models['AchievementInfo'],output); } }
+export function decodeToAchievementInfo(output: CartesiReport | CartesiNotice | CartesiVoucher | InspectReport): AchievementInfo {
+    return new AchievementInfo(output as CartesiReport);
+}
+
+export class AchievementsOutput extends Output<ifaces.AchievementsOutput> { constructor(output: CartesiReport | InspectReport) { super(models['AchievementsOutput'],output); } }
+export function decodeToAchievementsOutput(output: CartesiReport | CartesiNotice | CartesiVoucher | InspectReport): AchievementsOutput {
+    return new AchievementsOutput(output as CartesiReport);
 }
 
 export class GameplayInfo extends Output<ifaces.GameplayInfo> { constructor(output: CartesiReport | InspectReport) { super(models['GameplayInfo'],output); } }
@@ -175,13 +219,6 @@ export const models: Models = {
         exporter: exportToCreateAchievementsPayload,
         validator: ajv.compile<ifaces.CreateAchievementsPayload>(JSON.parse('{"title": "CreateAchievementsPayload", "type": "object", "properties": {"cartridge_id": {"type": "string", "format": "binary"}, "name": {"type": "string"}, "description": {"type": "string"}, "expression": {"type": "string"}, "icon": {"type": "string", "format": "binary"}, "outcard_hash": {"type": "string", "format": "binary"}, "args": {"type": "string"}, "in_card": {"type": "string", "format": "binary"}, "log": {"type": "string", "format": "binary"}}, "required": ["cartridge_id", "name", "description", "expression", "icon", "outcard_hash", "args", "in_card", "log"]}'))
     },
-    'GameplayPayload': {
-        ioType:IOType.queryPayload,
-        abiTypes:[],
-        params:['id'],
-        exporter: exportToGameplayPayload,
-        validator: ajv.compile<ifaces.GameplayPayload>(JSON.parse('{"title": "GameplayPayload", "type": "object", "properties": {"id": {"type": "string"}}, "required": ["id"]}'))
-    },
     'GameplaysPayload': {
         ioType:IOType.queryPayload,
         abiTypes:[],
@@ -189,19 +226,54 @@ export const models: Models = {
         exporter: exportToGameplaysPayload,
         validator: ajv.compile<ifaces.GameplaysPayload>(JSON.parse('{"title": "GameplaysPayload", "type": "object", "properties": {"cartridge_id": {"type": "string"}, "user_address": {"type": "string"}, "order_by": {"type": "string"}, "order_dir": {"type": "string"}, "page": {"type": "integer"}, "page_size": {"type": "integer"}}}'))
     },
+    'AchievementsPayload': {
+        ioType:IOType.queryPayload,
+        abiTypes:[],
+        params:['cartridge_id', 'user_address', 'name', 'order_by', 'order_dir', 'page', 'page_size', 'player'],
+        exporter: exportToAchievementsPayload,
+        validator: ajv.compile<ifaces.AchievementsPayload>(JSON.parse('{"title": "AchievementsPayload", "type": "object", "properties": {"cartridge_id": {"type": "string"}, "user_address": {"type": "string"}, "name": {"type": "string"}, "order_by": {"type": "string"}, "order_dir": {"type": "string"}, "page": {"type": "integer"}, "page_size": {"type": "integer"}, "player": {"type": "string"}}}'))
+    },
+    'AchievementPayload': {
+        ioType:IOType.queryPayload,
+        abiTypes:[],
+        params:['id'],
+        exporter: exportToAchievementPayload,
+        validator: ajv.compile<ifaces.AchievementPayload>(JSON.parse('{"title": "AchievementPayload", "type": "object", "properties": {"id": {"type": "string"}}, "required": ["id"]}'))
+    },
+    'GameplayPayload': {
+        ioType:IOType.queryPayload,
+        abiTypes:[],
+        params:['id'],
+        exporter: exportToGameplayPayload,
+        validator: ajv.compile<ifaces.GameplayPayload>(JSON.parse('{"title": "GameplayPayload", "type": "object", "properties": {"id": {"type": "string"}}, "required": ["id"]}'))
+    },
+    'AchievementInfo': {
+        ioType:IOType.report,
+        abiTypes:[],
+        params:['id', 'name', 'description', 'expression', 'created_by', 'created_at', 'icon', 'users', 'player_achieved', 'total_cartridge_players', 'total_players_achieved'],
+        decoder: decodeToAchievementInfo,
+        validator: ajv.compile<ifaces.AchievementInfo>(JSON.parse('{"title": "AchievementInfo", "type": "object", "properties": {"id": {"type": "string"}, "name": {"type": "string"}, "description": {"type": "string"}, "expression": {"type": "string"}, "created_by": {"type": "string"}, "created_at": {"type": "integer"}, "icon": {"type": "string"}, "users": {"type": "array", "items": {"$ref": "#/definitions/UserAchievementInfo"}}, "player_achieved": {"type": "boolean"}, "total_cartridge_players": {"type": "integer"}, "total_players_achieved": {"type": "integer"}}, "required": ["id", "name", "description", "expression", "created_by", "created_at", "total_cartridge_players", "total_players_achieved"], "definitions": {"UserAchievementInfo": {"title": "UserAchievementInfo", "type": "object", "properties": {"user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "frame": {"type": "integer"}, "index": {"type": "integer"}, "gameplay_id": {"type": "string"}, "achievement_id": {"type": "string"}, "achievement_name": {"type": "string"}, "achievement_description": {"type": "string"}, "achievement_icon": {"type": "string"}}, "required": ["user_address", "timestamp", "frame", "index"]}}}'))
+    },
+    'AchievementsOutput': {
+        ioType:IOType.report,
+        abiTypes:[],
+        params:['data', 'total', 'page'],
+        decoder: decodeToAchievementsOutput,
+        validator: ajv.compile<ifaces.AchievementsOutput>(JSON.parse('{"title": "AchievementsOutput", "type": "object", "properties": {"data": {"type": "array", "items": {"$ref": "#/definitions/AchievementInfo"}}, "total": {"type": "integer"}, "page": {"type": "integer"}}, "required": ["data", "total", "page"], "definitions": {"UserAchievementInfo": {"title": "UserAchievementInfo", "type": "object", "properties": {"user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "frame": {"type": "integer"}, "index": {"type": "integer"}, "gameplay_id": {"type": "string"}, "achievement_id": {"type": "string"}, "achievement_name": {"type": "string"}, "achievement_description": {"type": "string"}, "achievement_icon": {"type": "string"}}, "required": ["user_address", "timestamp", "frame", "index"]}, "AchievementInfo": {"title": "AchievementInfo", "type": "object", "properties": {"id": {"type": "string"}, "name": {"type": "string"}, "description": {"type": "string"}, "expression": {"type": "string"}, "created_by": {"type": "string"}, "created_at": {"type": "integer"}, "icon": {"type": "string"}, "users": {"type": "array", "items": {"$ref": "#/definitions/UserAchievementInfo"}}, "player_achieved": {"type": "boolean"}, "total_cartridge_players": {"type": "integer"}, "total_players_achieved": {"type": "integer"}}, "required": ["id", "name", "description", "expression", "created_by", "created_at", "total_cartridge_players", "total_players_achieved"]}}}'))
+    },
     'GameplayInfo': {
         ioType:IOType.report,
         abiTypes:[],
         params:['id', 'cartridge_id', 'user_address', 'timestamp', 'share_value', 'total_shares', 'achievements', 'moments'],
         decoder: decodeToGameplayInfo,
-        validator: ajv.compile<ifaces.GameplayInfo>(JSON.parse('{"title": "GameplayInfo", "type": "object", "properties": {"id": {"type": "string"}, "cartridge_id": {"type": "string"}, "user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "share_value": {"type": "integer"}, "total_shares": {"type": "integer"}, "achievements": {"type": "array", "items": {"$ref": "#/definitions/UserAchievementInfo"}}, "moments": {"type": "array", "items": {"$ref": "#/definitions/MomentInfo"}}}, "required": ["id", "cartridge_id", "user_address", "timestamp", "share_value"], "definitions": {"UserAchievementInfo": {"title": "UserAchievementInfo", "type": "object", "properties": {"user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "frame": {"type": "integer"}, "index": {"type": "integer"}, "achievement_id": {"type": "string"}, "achievement_name": {"type": "string"}, "achievement_description": {"type": "string"}, "achievement_icon": {"type": "string"}}, "required": ["user_address", "timestamp", "frame", "index"]}, "MomentInfo": {"title": "MomentInfo", "type": "object", "properties": {"id": {"type": "string"}, "user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "frame": {"type": "integer"}, "shares": {"type": "integer"}}, "required": ["id", "user_address", "timestamp", "frame", "shares"]}}}'))
+        validator: ajv.compile<ifaces.GameplayInfo>(JSON.parse('{"title": "GameplayInfo", "type": "object", "properties": {"id": {"type": "string"}, "cartridge_id": {"type": "string"}, "user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "share_value": {"type": "integer"}, "total_shares": {"type": "integer"}, "achievements": {"type": "array", "items": {"$ref": "#/definitions/UserAchievementInfo"}}, "moments": {"type": "array", "items": {"$ref": "#/definitions/MomentInfo"}}}, "required": ["id", "cartridge_id", "user_address", "timestamp", "share_value"], "definitions": {"UserAchievementInfo": {"title": "UserAchievementInfo", "type": "object", "properties": {"user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "frame": {"type": "integer"}, "index": {"type": "integer"}, "gameplay_id": {"type": "string"}, "achievement_id": {"type": "string"}, "achievement_name": {"type": "string"}, "achievement_description": {"type": "string"}, "achievement_icon": {"type": "string"}}, "required": ["user_address", "timestamp", "frame", "index"]}, "MomentInfo": {"title": "MomentInfo", "type": "object", "properties": {"id": {"type": "string"}, "user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "frame": {"type": "integer"}, "shares": {"type": "integer"}}, "required": ["id", "user_address", "timestamp", "frame", "shares"]}}}'))
     },
     'GameplaysOutput': {
         ioType:IOType.report,
         abiTypes:[],
         params:['data', 'total', 'page'],
         decoder: decodeToGameplaysOutput,
-        validator: ajv.compile<ifaces.GameplaysOutput>(JSON.parse('{"title": "GameplaysOutput", "type": "object", "properties": {"data": {"type": "array", "items": {"$ref": "#/definitions/GameplayInfo"}}, "total": {"type": "integer"}, "page": {"type": "integer"}}, "required": ["data", "total", "page"], "definitions": {"UserAchievementInfo": {"title": "UserAchievementInfo", "type": "object", "properties": {"user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "frame": {"type": "integer"}, "index": {"type": "integer"}, "achievement_id": {"type": "string"}, "achievement_name": {"type": "string"}, "achievement_description": {"type": "string"}, "achievement_icon": {"type": "string"}}, "required": ["user_address", "timestamp", "frame", "index"]}, "MomentInfo": {"title": "MomentInfo", "type": "object", "properties": {"id": {"type": "string"}, "user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "frame": {"type": "integer"}, "shares": {"type": "integer"}}, "required": ["id", "user_address", "timestamp", "frame", "shares"]}, "GameplayInfo": {"title": "GameplayInfo", "type": "object", "properties": {"id": {"type": "string"}, "cartridge_id": {"type": "string"}, "user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "share_value": {"type": "integer"}, "total_shares": {"type": "integer"}, "achievements": {"type": "array", "items": {"$ref": "#/definitions/UserAchievementInfo"}}, "moments": {"type": "array", "items": {"$ref": "#/definitions/MomentInfo"}}}, "required": ["id", "cartridge_id", "user_address", "timestamp", "share_value"]}}}'))
+        validator: ajv.compile<ifaces.GameplaysOutput>(JSON.parse('{"title": "GameplaysOutput", "type": "object", "properties": {"data": {"type": "array", "items": {"$ref": "#/definitions/GameplayInfo"}}, "total": {"type": "integer"}, "page": {"type": "integer"}}, "required": ["data", "total", "page"], "definitions": {"UserAchievementInfo": {"title": "UserAchievementInfo", "type": "object", "properties": {"user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "frame": {"type": "integer"}, "index": {"type": "integer"}, "gameplay_id": {"type": "string"}, "achievement_id": {"type": "string"}, "achievement_name": {"type": "string"}, "achievement_description": {"type": "string"}, "achievement_icon": {"type": "string"}}, "required": ["user_address", "timestamp", "frame", "index"]}, "MomentInfo": {"title": "MomentInfo", "type": "object", "properties": {"id": {"type": "string"}, "user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "frame": {"type": "integer"}, "shares": {"type": "integer"}}, "required": ["id", "user_address", "timestamp", "frame", "shares"]}, "GameplayInfo": {"title": "GameplayInfo", "type": "object", "properties": {"id": {"type": "string"}, "cartridge_id": {"type": "string"}, "user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "share_value": {"type": "integer"}, "total_shares": {"type": "integer"}, "achievements": {"type": "array", "items": {"$ref": "#/definitions/UserAchievementInfo"}}, "moments": {"type": "array", "items": {"$ref": "#/definitions/MomentInfo"}}}, "required": ["id", "cartridge_id", "user_address", "timestamp", "share_value"]}}}'))
     },
     'AcquiredAchievement': {
         ioType:IOType.notice,

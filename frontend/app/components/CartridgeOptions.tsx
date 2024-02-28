@@ -8,7 +8,6 @@ import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 
 
 import { CartridgeInfo } from "@/app/libs/app/ifaces";
-import CartridgeAchievements from "./CartridgeAchievements";
 import { Suspense } from "react";
 import Rivemu from "@/app/components/Rivemu";
 
@@ -21,7 +20,14 @@ function loadingFallback() {
     )
 }
 
-export default function CartridgeOptions({cartridge}:{cartridge:CartridgeInfo}) {
+type CartridgeOptionProps = {
+    cartridge:CartridgeInfo,
+    children: {
+        achievements:React.ReactNode
+    }
+}
+
+export default function CartridgeOptions({props}:{props:CartridgeOptionProps}) {
     return (
         <Tab.Group>
             <Tab.List className="tabs-header">
@@ -66,20 +72,21 @@ export default function CartridgeOptions({cartridge}:{cartridge:CartridgeInfo}) 
             <Tab.Panels className="tab-content">
                 <Tab.Panel className="">
                     <Suspense fallback={loadingFallback()}>
-                        <CartridgeAchievements cartridge_id={cartridge.id}/>
+                        {/* <CartridgeAchievements cartridge_id={cartridge.id}/> */}
+                        {props.children.achievements}
                     </Suspense>
                 </Tab.Panel>
     
                 <Tab.Panel className="">
-                    List of Gameplays for {cartridge.name}
+                    List of Gameplays for {props.cartridge.name}
                 </Tab.Panel>
 
                 <Tab.Panel className="">
-                    List of Moments for {cartridge.name}
+                    List of Moments for {props.cartridge.name}
                 </Tab.Panel>
 
                 <Tab.Panel className="">
-                    <Rivemu cartridge={cartridge}/>
+                    <Rivemu cartridge={props.cartridge}/>
                 </Tab.Panel>
 
             </Tab.Panels>

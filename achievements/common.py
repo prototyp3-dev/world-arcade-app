@@ -127,6 +127,7 @@ def initialize_moment():
             )
 
             if os.path.basename(cartridge_path) == 'antcopter.sqfs':
+                with open('misc/achievement-icon.jpeg','rb') as f: icon = f.read()
                 expression = "berries == 0 and deaths == 20 and frames > 0 and finished"
                 achievement_id = get_achievement_id(expression, cartridge_id)
                 a = Achievement(
@@ -137,7 +138,7 @@ def initialize_moment():
                     created_by      = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
                     created_at      = 0,
                     expression      = expression,
-                    icon            = None
+                    icon            = icon
                 )
                 
                 expression = "level == 3"

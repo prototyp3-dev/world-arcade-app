@@ -29,10 +29,18 @@ const getCartridgeData = cache(async (id:string) => {
 })
 
 
+const loadingFeedback = () => {
+    return (
+        <div className="w-full py-1 px-4 flex justify-center">
+            <div className='w-4 h-4 border-2 rounded-full border-current border-r-transparent animate-spin'></div>
+        </div>
+    )
+}
+
 interface Gameplay {
     gameplayLog:Uint8Array,
-    outcard?:Uint8Array,
-    outhash?:string
+    outcard:Uint8Array,
+    outhash:string
 }
 
 function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
@@ -50,6 +58,7 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
     const [cartridgeGameplay, setCartridgeGameplay] = useState<Gameplay | null>(null);
     const [{ wallet }] = useConnectWallet();
     const [isOpen, setIsOpen] = useState(false)
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         if (cartridge) initialize();
@@ -86,7 +95,11 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
         reader.onload = async (readerEvent) => {
             const data = readerEvent.target?.result;
             if (data) {
-                setCartridgeGameplay({gameplayLog: new Uint8Array(data as ArrayBuffer)});
+                setCartridgeGameplay({
+                    gameplayLog: new Uint8Array(data as ArrayBuffer),
+                    outcard: new Uint8Array([]),
+                    outhash: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                });
                 event.target.value = null;
             }
         };
@@ -107,21 +120,21 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
         const signer = new ethers.providers.Web3Provider(wallet.provider, 'any').getSigner();
         const inputData: Replay = {
             cartridge_id: "0x" + cartridge.id,
-            outcard_hash: '0x' + cartridgeGameplay.outhash,
+            outcard_hash: cartridgeGameplay.outhash,
             args: args || "",
             in_card: inCard ? ethers.utils.hexlify(inCard) : "0x",
             log: ethers.utils.hexlify(cartridgeGameplay.gameplayLog),
             user_alias: ''
         }
 
+        setSubmitting(true);
         try {
             const receipt = await replay(signer, envClient.DAPP_ADDR, inputData, {sync:false, cartesiNodeUrl: envClient.CARTESI_NODE_URL}) as ContractReceipt;
+            setCartridgeGameplay(null);
         } catch(error) {
             alert((error as Error).message);
-            return;
         }
-
-        setCartridgeGameplay(null);
+        setSubmitting(false);
     }
 
     if (!cartridge) {
@@ -342,7 +355,7 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
                 setCartridgeGameplay({
                     gameplayLog: new Uint8Array(rivlog),
                     outcard: new Uint8Array(outcard),
-                    outhash: outhash
+                    outhash: "0x" + outhash
                 });
             }
             rivemuStop();
@@ -465,12 +478,19 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
                         onClick={() => setIsOpen(false)}>
                             Cancel
                         </button>
+
                         <button
-                        disabled={!cartridgeGameplay}
+                        disabled={!cartridgeGameplay || submitting}
                         className={`text-white font-bold uppercase text-sm p-2 border ${cartridgeGameplay?"bg-green-500 border-green-500 hover:text-green-500 hover:bg-transparent":"bg-gray-500"}`}
-                        onClick={() => {setIsOpen(false), submitLog()}}>
-                            Submit
+                        onClick={() => {submitLog().then(() => setIsOpen(false))}}>
+                            {
+                                submitting?
+                                    loadingFeedback()
+                                :
+                                    "Submit"
+                            }
                         </button>
+    
                     </div>
                 </Dialog.Panel>
             </Dialog>

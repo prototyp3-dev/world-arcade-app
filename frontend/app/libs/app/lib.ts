@@ -94,6 +94,21 @@ export async function replay(
     return result;
 }
 
+export async function releaseMoment(
+    client:Signer,
+    dappAddress:string,
+    inputData: ifaces.ReleaseMomentPayload,
+    options?:MutationOptions
+):Promise<AdvanceOutput|ContractReceipt|any[]> {
+    const data: ReleaseMomentPayload = new ReleaseMomentPayload(inputData);
+    if (options?.decode) { options.sync = true; }
+    const result = await genericAdvanceInput<ifaces.ReleaseMomentPayload>(client,dappAddress,'0x203eaee3',data, options)
+    if (options?.decode) {
+        return decodeAdvance(result as AdvanceOutput,decodeToModel,options);
+    }
+    return result;
+}
+
 
 /*
  * Queries/Inspects
@@ -181,15 +196,21 @@ export function exportToModel(data: any, modelName: string): string {
     return exporter(data);
 }
 
+export class InserCartridgePayload extends IOData<ifaces.InserCartridgePayload> { constructor(data: ifaces.InserCartridgePayload, validate: boolean = true) { super(models['InserCartridgePayload'],data,validate); } }
+export function exportToInserCartridgePayload(data: ifaces.InserCartridgePayload): string {
+    const dataToExport: InserCartridgePayload = new InserCartridgePayload(data);
+    return dataToExport.export();
+}
+
 export class RemoveCartridgePayload extends IOData<ifaces.RemoveCartridgePayload> { constructor(data: ifaces.RemoveCartridgePayload, validate: boolean = true) { super(models['RemoveCartridgePayload'],data,validate); } }
 export function exportToRemoveCartridgePayload(data: ifaces.RemoveCartridgePayload): string {
     const dataToExport: RemoveCartridgePayload = new RemoveCartridgePayload(data);
     return dataToExport.export();
 }
 
-export class InserCartridgePayload extends IOData<ifaces.InserCartridgePayload> { constructor(data: ifaces.InserCartridgePayload, validate: boolean = true) { super(models['InserCartridgePayload'],data,validate); } }
-export function exportToInserCartridgePayload(data: ifaces.InserCartridgePayload): string {
-    const dataToExport: InserCartridgePayload = new InserCartridgePayload(data);
+export class ReleaseMomentPayload extends IOData<ifaces.ReleaseMomentPayload> { constructor(data: ifaces.ReleaseMomentPayload, validate: boolean = true) { super(models['ReleaseMomentPayload'],data,validate); } }
+export function exportToReleaseMomentPayload(data: ifaces.ReleaseMomentPayload): string {
+    const dataToExport: ReleaseMomentPayload = new ReleaseMomentPayload(data);
     return dataToExport.export();
 }
 
@@ -199,15 +220,15 @@ export function exportToReplay(data: ifaces.Replay): string {
     return dataToExport.export();
 }
 
-export class CartridgesPayload extends IOData<ifaces.CartridgesPayload> { constructor(data: ifaces.CartridgesPayload, validate: boolean = true) { super(models['CartridgesPayload'],data,validate); } }
-export function exportToCartridgesPayload(data: ifaces.CartridgesPayload): string {
-    const dataToExport: CartridgesPayload = new CartridgesPayload(data);
-    return dataToExport.export();
-}
-
 export class CartridgePayloadSplittable extends IOData<ifaces.CartridgePayloadSplittable> { constructor(data: ifaces.CartridgePayloadSplittable, validate: boolean = true) { super(models['CartridgePayloadSplittable'],data,validate); } }
 export function exportToCartridgePayloadSplittable(data: ifaces.CartridgePayloadSplittable): string {
     const dataToExport: CartridgePayloadSplittable = new CartridgePayloadSplittable(data);
+    return dataToExport.export();
+}
+
+export class CartridgesPayload extends IOData<ifaces.CartridgesPayload> { constructor(data: ifaces.CartridgesPayload, validate: boolean = true) { super(models['CartridgesPayload'],data,validate); } }
+export function exportToCartridgesPayload(data: ifaces.CartridgesPayload): string {
+    const dataToExport: CartridgesPayload = new CartridgesPayload(data);
     return dataToExport.export();
 }
 
@@ -273,6 +294,13 @@ export function decodeToScoreboardReplayScore(output: CartesiReport | CartesiNot
  */
 
 export const models: Models = {
+    'InserCartridgePayload': {
+        ioType:IOType.mutationPayload,
+        abiTypes:['bytes'],
+        params:['data'],
+        exporter: exportToInserCartridgePayload,
+        validator: ajv.compile<ifaces.InserCartridgePayload>(JSON.parse('{"title": "InserCartridgePayload", "type": "object", "properties": {"data": {"type": "string", "format": "binary"}}, "required": ["data"]}'))
+    },
     'RemoveCartridgePayload': {
         ioType:IOType.mutationPayload,
         abiTypes:['bytes32'],
@@ -280,12 +308,12 @@ export const models: Models = {
         exporter: exportToRemoveCartridgePayload,
         validator: ajv.compile<ifaces.RemoveCartridgePayload>(JSON.parse('{"title": "RemoveCartridgePayload", "type": "object", "properties": {"id": {"type": "string", "format": "binary"}}, "required": ["id"]}'))
     },
-    'InserCartridgePayload': {
+    'ReleaseMomentPayload': {
         ioType:IOType.mutationPayload,
-        abiTypes:['bytes'],
-        params:['data'],
-        exporter: exportToInserCartridgePayload,
-        validator: ajv.compile<ifaces.InserCartridgePayload>(JSON.parse('{"title": "InserCartridgePayload", "type": "object", "properties": {"data": {"type": "string", "format": "binary"}}, "required": ["data"]}'))
+        abiTypes:['uint'],
+        params:['id'],
+        exporter: exportToReleaseMomentPayload,
+        validator: ajv.compile<ifaces.ReleaseMomentPayload>(JSON.parse('{"title": "ReleaseMomentPayload", "type": "object", "properties": {"id": {"type": "integer"}}, "required": ["id"]}'))
     },
     'Replay': {
         ioType:IOType.mutationPayload,
@@ -294,19 +322,19 @@ export const models: Models = {
         exporter: exportToReplay,
         validator: ajv.compile<ifaces.Replay>(JSON.parse('{"title": "Replay", "type": "object", "properties": {"cartridge_id": {"type": "string", "format": "binary"}, "outcard_hash": {"type": "string", "format": "binary"}, "args": {"type": "string"}, "in_card": {"type": "string", "format": "binary"}, "log": {"type": "string", "format": "binary"}, "user_alias": {"type": "string"}}, "required": ["cartridge_id", "outcard_hash", "args", "in_card", "log", "user_alias"]}'))
     },
-    'CartridgesPayload': {
-        ioType:IOType.queryPayload,
-        abiTypes:[],
-        params:['name', 'tags', 'page', 'page_size'],
-        exporter: exportToCartridgesPayload,
-        validator: ajv.compile<ifaces.CartridgesPayload>(JSON.parse('{"title": "CartridgesPayload", "type": "object", "properties": {"name": {"type": "string"}, "tags": {"type": "array", "items": {"type": "string"}}, "page": {"type": "integer"}, "page_size": {"type": "integer"}}}'))
-    },
     'CartridgePayloadSplittable': {
         ioType:IOType.queryPayload,
         abiTypes:[],
         params:['id', 'part'],
         exporter: exportToCartridgePayloadSplittable,
         validator: ajv.compile<ifaces.CartridgePayloadSplittable>(JSON.parse('{"title": "CartridgePayloadSplittable", "type": "object", "properties": {"id": {"type": "string"}, "part": {"type": "integer"}}, "required": ["id"]}'))
+    },
+    'CartridgesPayload': {
+        ioType:IOType.queryPayload,
+        abiTypes:[],
+        params:['name', 'tags', 'page', 'page_size'],
+        exporter: exportToCartridgesPayload,
+        validator: ajv.compile<ifaces.CartridgesPayload>(JSON.parse('{"title": "CartridgesPayload", "type": "object", "properties": {"name": {"type": "string"}, "tags": {"type": "array", "items": {"type": "string"}}, "page": {"type": "integer"}, "page_size": {"type": "integer"}}}'))
     },
     'CartridgePayload': {
         ioType:IOType.queryPayload,

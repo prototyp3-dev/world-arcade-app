@@ -14,8 +14,8 @@ export interface _Master_ {
   withdrawErc20: WithdrawErc20;
   TransferEtherPayload: TransferEtherPayload;
   Erc20Event: Erc20Event;
-  WithdrawEtherPayload: WithdrawEtherPayload;
   withdrawEther: WithdrawEther;
+  WithdrawEtherPayload: WithdrawEtherPayload;
   EtherEvent: EtherEvent;
   BalancePayload: BalancePayload;
   TransferErc721Payload: TransferErc721Payload;
@@ -74,13 +74,13 @@ export interface Erc20Event {
   mod_amount: number;
   balance: number;
 }
-export interface WithdrawEtherPayload {
-  amount: number;
-  execLayerData: string;
-}
 export interface WithdrawEther {
   user: string;
   amount: number;
+}
+export interface WithdrawEtherPayload {
+  amount: number;
+  execLayerData: string;
 }
 export interface EtherEvent {
   user: string;

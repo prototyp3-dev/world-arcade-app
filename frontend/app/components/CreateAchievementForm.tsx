@@ -55,9 +55,6 @@ export default function CreateAchievementForm({ cartridge_id }:{cartridge_id?:st
 
     const [{ wallet }] = useConnectWallet();
 
-    console.log(gameplay)
-
-
     // combobox controlers
     const [selected, setSelected] = useState<CartridgeInfo>({created_at: 0, id: "", name: "", user_address: ""});
     const [query, setQuery] = useState('');

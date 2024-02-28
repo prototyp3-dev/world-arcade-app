@@ -19,7 +19,7 @@ from app.cartridge import Cartridge
 from app.replay import Replay
 from app.common import get_cid
 
-from .common import Bytes32List, Gameplay, Achievement, UserAchievement
+from .common import Bytes32List, Gameplay, Achievement, UserAchievement, return_error
 from .riv import replay_hist, replay_screenshot
 
 LOGGER = logging.getLogger(__name__)
@@ -77,6 +77,7 @@ class AcquiredAchievement(BaseModel):
     cid:            String = ''
 
 class UserAchievementInfo(BaseModel):
+    id: UInt
     user_address: String
     timestamp: UInt
     frame: UInt
@@ -86,6 +87,7 @@ class UserAchievementInfo(BaseModel):
     achievement_name: Optional[str]
     achievement_description: Optional[str]
     achievement_icon: Optional[str]
+    number_collected_moments: Optional[int]
 
 @output()
 class AchievementInfo(BaseModel):
@@ -93,6 +95,7 @@ class AchievementInfo(BaseModel):
     name: String
     description: String
     expression: String
+    cartridge_id: String
     created_by: String
     created_at: UInt
     icon: Optional[str]
@@ -121,19 +124,11 @@ def replay(payload: Replay) -> bool:
 
     # check if gameplay already exists
     gameplay = helpers.select(r for r in Gameplay if r.id == gameplay_hash.hexdigest()).first()
-    if gameplay is not None:
-        msg = f"Gameplay already submitted"
-        LOGGER.error(msg)
-        add_output(msg,tags=['error'])
-        return False
+    if gameplay is not None: return return_error(f"Gameplay already submitted",LOGGER)
 
     # check if cartridge exists
     cartridge = helpers.select(c for c in Cartridge if c.id == payload.cartridge_id.hex()).first()
-    if cartridge is None:
-        msg = f"Game not found"
-        LOGGER.error(msg)
-        add_output(msg,tags=['error'])
-        return False
+    if cartridge is None: return return_error(f"Game not found",LOGGER)
 
     # save gameplay
     g = Gameplay(
@@ -143,21 +138,19 @@ def replay(payload: Replay) -> bool:
         timestamp           = metadata.timestamp,
         args_hash           = sha256(str2bytes(payload.args)).hexdigest(),
         in_card_hash        = sha256(payload.in_card).hexdigest(),
-        share_value         = 0
+        share_value         = 0,
+        total_shares        = 0
     )
     # TODO: index use gameplay from input, so we don't add to the output
-    add_output(payload.log,tags=['payload',payload.cartridge_id.hex(),gameplay_hash.hexdigest()])
+    add_output(payload.log,tags=['replay',payload.cartridge_id.hex(),gameplay_hash.hexdigest()])
 
     # evaluate gameplay achievements
     #   runs gameplay and get hist
     #   evaluate achievements againt a list (or all if none) and save them
     try:
-        evaluate_gameplay_achievements(payload.cartridge_id.hex(),payload.log,payload.args,payload.in_card,payload.outcard_hash,g)
+        _evaluate_gameplay_achievements(payload.cartridge_id.hex(),payload.log,payload.args,payload.in_card,payload.outcard_hash,g)
     except Exception as e:
-        msg = f"Couldn't evaluate achievements: {e}"
-        LOGGER.error(msg)
-        add_output(msg,tags=['error'])
-        return False
+        return return_error(f"Couldn't evaluate achievements: {e}",LOGGER)
 
     return True
 
@@ -170,11 +163,7 @@ def achievements_replay(payload: ReplayAchievements) -> bool:
 
     # check if cartridge exists
     cartridge = helpers.select(c for c in Cartridge if c.id == payload.cartridge_id.hex()).first()
-    if cartridge is None:
-        msg = f"Game not found"
-        LOGGER.error(msg)
-        add_output(msg,tags=['error'])
-        return False
+    if cartridge is None: return return_error(f"Game not found",LOGGER)
 
     # save gameplay if it doesn't exist
     gameplay = helpers.select(r for r in Gameplay if r.id == gameplay_hash.hexdigest()).first()
@@ -186,27 +175,22 @@ def achievements_replay(payload: ReplayAchievements) -> bool:
             timestamp           = metadata.timestamp,
             args_hash           = sha256(str2bytes(payload.args)).hexdigest(),
             in_card_hash        = sha256(payload.in_card).hexdigest(),
-            share_value         = 0
+            share_value         = 0,
+            total_shares        = 0
         )
         add_output(payload.log,tags=['replay',payload.cartridge_id.hex(),gameplay_hash.hexdigest()])
     else:
         if gameplay.args_hash != sha256(str2bytes(payload.args)).hexdigest() and \
             gameplay.in_card_hash != sha256(payload.in_card).hexdigest():
-            msg = f"Args and incard don't match to original gameplay"
-            LOGGER.error(msg)
-            add_output(msg,tags=['error'])
-            return False
+            return return_error(f"Args and incard don't match to original gameplay",LOGGER)
 
     # evaluate gameplay achievements
     #   runs gameplay and get hist
     #   evaluate achievements againt a list (or all if none) and save them
     try:
-        evaluate_gameplay_achievements(payload.cartridge_id.hex(),payload.log,payload.args,payload.in_card,payload.outcard_hash,gameplay,[a.hex() for a in payload.achievements])
+        _evaluate_gameplay_achievements(payload.cartridge_id.hex(),payload.log,payload.args,payload.in_card,payload.outcard_hash,gameplay,[a.hex() for a in payload.achievements])
     except Exception as e:
-        msg = f"Couldn't evaluate achievements: {e}"
-        LOGGER.error(msg)
-        add_output(msg,tags=['error'])
-        return False
+        return return_error(f"Couldn't evaluate achievements: {e}",LOGGER)
 
     return True
 
@@ -219,25 +203,15 @@ def create_achievement(payload: CreateAchievementsPayload) -> bool:
 
     # check if cartridge already exists
     cartridge = helpers.select(c for c in Cartridge if c.id == payload.cartridge_id.hex()).first()
-    if cartridge is None:
-        msg = f"Game not found"
-        LOGGER.error(msg)
-        add_output(msg,tags=['error'])
-        return False
+    if cartridge is None: return return_error(f"Game not found",LOGGER)
 
     # check if achievement already exists
     achievement_id = get_achievement_id(payload.expression,payload.cartridge_id.hex())
     if helpers.count(r.id for r in Achievement if r.id == achievement_id) > 0:
-        msg = f"Achievement expression already exists"
-        LOGGER.error(msg)
-        add_output(msg,tags=['error'])
-        return False
+        return return_error(f"Achievement expression already exists",LOGGER)
 
     if helpers.count(r.id for r in Achievement if r.name == payload.name and r.cartridge_id == payload.cartridge_id.hex()) > 0:
-        msg = f"Achievement {payload.name} already exists for this cartridge"
-        LOGGER.error(msg)
-        add_output(msg,tags=['error'])
-        return False
+        return return_error(f"Achievement {payload.name} already exists for this cartridge",LOGGER)
 
     new_achievement = Achievement(
         id              = achievement_id,
@@ -260,30 +234,21 @@ def create_achievement(payload: CreateAchievementsPayload) -> bool:
             timestamp           = metadata.timestamp,
             args_hash           = sha256(str2bytes(payload.args)).hexdigest(),
             in_card_hash        = sha256(payload.in_card).hexdigest(),
-            share_value         = 0
+            share_value         = 0,
+            total_shares        = 0
         )
         add_output(payload.log,tags=['replay',payload.cartridge_id.hex(),gameplay_hash.hexdigest()])
     else:
         if gameplay.args_hash != sha256(str2bytes(payload.args)).hexdigest() and \
             gameplay.in_card_hash != sha256(payload.in_card).hexdigest():
-            msg = f"Args and incard don't match to original gameplay"
-            LOGGER.error(msg)
-            add_output(msg,tags=['error'])
-            return False
+            return return_error(f"Args and incard don't match to original gameplay",LOGGER)
 
     try:
-        n_achievements = evaluate_gameplay_achievements(payload.cartridge_id.hex(),payload.log,payload.args,payload.in_card,payload.outcard_hash,gameplay,[new_achievement.id])
+        n_achievements = _evaluate_gameplay_achievements(payload.cartridge_id.hex(),payload.log,payload.args,payload.in_card,payload.outcard_hash,gameplay,[new_achievement.id])
     except Exception as e:
-        msg = f"Couldn't evaluate achievements: {e}"
-        LOGGER.error(msg)
-        add_output(msg,tags=['error'])
-        return False
+        return return_error(f"Couldn't evaluate achievements: {e}",LOGGER)
 
-    if n_achievements == 0:
-        msg = f"Can't create achievement: Gameplay doesn't prove achievement is possible"
-        LOGGER.error(msg)
-        add_output(msg,tags=['error'])
-        return False
+    if n_achievements == 0: return return_error(f"Can't create achievement: Gameplay doesn't prove achievement is possible",LOGGER)
 
     return True
 
@@ -364,7 +329,7 @@ def achievement_info(payload: AchievementPayload) -> bool:
         achievement_dict = achievement.to_dict()
         
         user_achievements = []
-        for user_achievement in achievement.users:
+        for user_achievement in achievement.users.order_by(lambda r: helpers.desc(helpers.count(r.moments))):
             user_achievement_dict = user_achievement.to_dict()
             user_achievement_dict['gameplay_id'] = user_achievement.gameplay.id
             user_achievements.append(user_achievement_dict)
@@ -390,7 +355,7 @@ def achievement_info(payload: AchievementPayload) -> bool:
 def get_achievement_id(expression: str, cartridge_id: str) -> str:
     return sha256(str2bytes(expression)+hex2bytes(cartridge_id)).hexdigest()
 
-def evaluate_gameplay_achievements(cartridge_id, log, args, in_card, replay_outcard_hash, gameplay, achievement_list = None) -> int:
+def _evaluate_gameplay_achievements(cartridge_id, log, args, in_card, replay_outcard_hash, gameplay, achievement_list = None) -> int:
     LOGGER.info("Replaying to get outcard history...")
 
     # get list of achievements to process

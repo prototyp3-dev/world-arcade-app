@@ -17,6 +17,7 @@ from app.cartridge import generate_cartridge_id
 from app.replay import Replay
 
 from achievements.achievement import ReplayAchievements, CreateAchievementsPayload, AcquiredAchievement, AchievementsOutput
+from achievements.gameplay import GameplaysOutput
 
 import logging
 logger = logging.getLogger(__name__)
@@ -49,6 +50,7 @@ NEW_ACHIEVEMT_NAME = 'First Steps'
 CREATED_ACHIEVEMENT_ID = None
 
 SECOND_USER = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
+CREATED_GAMEPLAY_ID = None
 
 
 @pytest.fixture(scope='session')
@@ -200,12 +202,12 @@ def test_should_retrieve_new_achievement(dapp_client: TestClient):
     report = json.loads(report.decode('utf-8'))
     assert isinstance(report, dict)
 
-    achievements_output = AchievementsOutput.parse_obj(report)
+    output = AchievementsOutput.parse_obj(report)
 
-    assert achievements_output.total == 1
+    assert output.total == 1
     
     global CREATED_ACHIEVEMENT_ID
-    CREATED_ACHIEVEMENT_ID = achievements_output.data[0].id
+    CREATED_ACHIEVEMENT_ID = output.data[0].id
 
 
 @pytest.fixture()
@@ -238,3 +240,41 @@ def test_should_revalidate_replay1(
     assert dapp_client.rollup.status
 
     assert len(dapp_client.rollup.notices) - last_notices_len == 1
+
+
+@pytest.mark.order(after="test_should_create_achievement")
+def test_should_retrieve_new_gameplay(dapp_client: TestClient):
+
+    path = f'achievements/gameplays?user_address={SECOND_USER}'
+    inspect_payload = '0x' + path.encode('ascii').hex()
+    dapp_client.send_inspect(hex_payload=inspect_payload)
+
+    assert dapp_client.rollup.status
+
+    report = dapp_client.rollup.reports[-1]['data']['payload']
+    report = bytes.fromhex(report[2:])
+    report = json.loads(report.decode('utf-8'))
+    assert isinstance(report, dict)
+
+    output = GameplaysOutput.parse_obj(report)
+
+    assert output.total == 1
+    
+    global CREATED_GAMEPLAY_ID
+    CREATED_GAMEPLAY_ID = output.data[0].id
+
+# @pytest.fixture()
+# def create_moment_replay2_payload() -> bytes:
+
+#     # No special frame
+#     model = CreateAchievementsPayload(
+#         cartridge_id    = bytes.fromhex(ANTCOPTER_ID),
+#         outcard_hash    = bytes.fromhex(OUTHASH_BLANK[2:]),
+#         args            = '',
+#         in_card         = b'',
+#         log             = bytes.fromhex(ANTCOPTER_LOG2[2:]),
+#         frame           = 0,
+#         user_achievement= 0
+#     )
+
+#     return encode_model(model, packed=False)

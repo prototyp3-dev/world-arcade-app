@@ -65,8 +65,6 @@ def dapp_client() -> TestClient:
     return client
 
 
-
-
 @pytest.fixture()
 def rives_antcopter_replay1_payload_wrong_outhash() -> bytes:
 
@@ -109,7 +107,6 @@ def rives_antcopter_replay1_payload() -> bytes:
     )
 
     return encode_model(model, packed=False)
-
 
 @pytest.mark.order(after="test_should_send_replay_wrong_outhash")
 def test_should_send_replay(
@@ -154,6 +151,7 @@ def test_should_reject_replay1_after_first(
 
     assert not dapp_client.rollup.status
 
+
 @pytest.fixture()
 def create_achievement_replay2_payload() -> bytes:
 
@@ -170,7 +168,6 @@ def create_achievement_replay2_payload() -> bytes:
     )
 
     return encode_model(model, packed=False)
-
 
 @pytest.mark.order(after="test_should_send_replay")
 def test_should_create_achievement(
@@ -209,6 +206,7 @@ def test_should_retrieve_new_achievement(dapp_client: TestClient):
     
     global CREATED_ACHIEVEMENT_ID
     CREATED_ACHIEVEMENT_ID = achievements_output.data[0].id
+
 
 @pytest.fixture()
 def achievement_antcopter_replay1_payload() -> bytes:

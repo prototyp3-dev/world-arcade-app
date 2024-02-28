@@ -11,6 +11,7 @@ from cartesapp.output import add_output, output
 
 from .achievement import UserAchievementInfo
 from .moment import MomentInfo
+from .common import Gameplay
 
 LOGGER = logging.getLogger(__name__)
 

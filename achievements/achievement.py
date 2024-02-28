@@ -142,7 +142,7 @@ def replay(payload: Replay) -> bool:
         total_shares        = 0
     )
     # TODO: index use gameplay from input, so we don't add to the output
-    add_output(payload.log,tags=['payload',payload.cartridge_id.hex(),gameplay_hash.hexdigest()])
+    add_output(payload.log,tags=['replay',payload.cartridge_id.hex(),gameplay_hash.hexdigest()])
 
     # evaluate gameplay achievements
     #   runs gameplay and get hist

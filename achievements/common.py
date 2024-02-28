@@ -65,7 +65,6 @@ class Achievement(Entity):
     users           = helpers.Set("UserAchievement", lazy=True)
 
 class UserAchievement(Entity):
-    id              = helpers.Required(int, auto=True, index=True)
     user_address    = helpers.Required(str, 42, index=True)
     achievement     = helpers.Required(Achievement, index=True)
     gameplay        = helpers.Required(Gameplay, index=True)
@@ -73,10 +72,10 @@ class UserAchievement(Entity):
     frame           = helpers.Required(int)
     index           = helpers.Required(int)
     moments         = helpers.Set("Moment", lazy=True)
-    helpers.PrimaryKey(user_address,achievement)
+    helpers.composite_key(user_address,achievement)
  
 class Moment(Entity):
-    id              = helpers.Required(int, auto=True, index=True)
+    id              = helpers.PrimaryKey(int, auto=True)
     user_address    = helpers.Required(str, 42, index=True)
     timestamp       = helpers.Required(int)
     frame           = helpers.Required(int)
@@ -84,7 +83,7 @@ class Moment(Entity):
     shares          = helpers.Required(int)
     gameplay        = helpers.Required(Gameplay, index=True)
     user_achievement= helpers.Optional(UserAchievement, lazy=True)
-    helpers.PrimaryKey(user_address,gameplay)
+    # helpers.composite_key(user_address,gameplay)
 
 class MomentPriceModel(Entity):
     id              = helpers.PrimaryKey(int, auto=True)

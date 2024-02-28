@@ -171,7 +171,8 @@ def collect_moment(payload: CollectMomentPayload) -> bool:
     )
 
     # emit event
-    emit_event(cm,tags=['moment_collected',gameplay.cartridge_id,user_address,gameplay.id,m.id])
+    m.flush()
+    emit_event(cm,tags=['moment_collected',gameplay.cartridge_id,user_address,gameplay.id,str(m.id)])
 
     # emit event
     add_output(screenshot,tags=['moment_screenshot',gameplay.cartridge_id,user_address,gameplay.id])

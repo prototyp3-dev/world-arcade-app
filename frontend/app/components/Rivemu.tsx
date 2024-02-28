@@ -454,7 +454,7 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
                 <Dialog.Panel className="element rounded p-6">
                     <Dialog.Title className="text-2xl mb-4">Upload a Gameplay File</Dialog.Title>
                     {
-                        cartridgeGameplay && cartridgeGameplay.outhash?
+                        cartridgeGameplay && cartridgeGameplay.outcard.length > 0?
                             <Dialog.Description className="mb-4">
                                 <WarningIcon className='text-yellow-500'/> This will override current gameplay log
                             </Dialog.Description>

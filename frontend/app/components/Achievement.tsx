@@ -45,11 +45,14 @@ export default function Achievement({achievement}:{achievement:AchievementInfo})
 
 
             <div className="w-full flex justify-center">
-                <table className="w-max">
+                <table className="w-max text-center">
                     <thead className="font-bold">
                         <tr className="border-b">
                             <th className="px-12 py-3">
                                 ID
+                            </th>
+                            <th className="px-12 py-3">
+                                User
                             </th>
                             <th className="px-12 py-3">
                                 Date
@@ -66,6 +69,9 @@ export default function Achievement({achievement}:{achievement:AchievementInfo})
                                     <tr className={`${index < achievement.users!.length-1? "border-b":"" }`} key={userAchievement.index}>
                                         <td className="px-12 py-4">
                                             {userAchievement.index}
+                                        </td>
+                                        <td className="px-12 py-4">
+                                            {userAchievement.user_address}
                                         </td>
                                         <td className="px-12 py-4">
                                             {new Date(userAchievement.timestamp*1000).toLocaleString()}

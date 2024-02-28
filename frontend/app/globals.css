@@ -55,6 +55,10 @@ section {
   .btn {
     @apply element p-2 text-center;
   }
+
+  .btn-disabled {
+    cursor: not-allowed;
+  }
 }
 
 .navbar {

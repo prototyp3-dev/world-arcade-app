@@ -7,19 +7,19 @@ import json
 from py_expression_eval import Parser
 import base64
 
-from cartesi.abi import String, Bytes, Bytes32, Int, UInt, Address
+from cartesi.abi import String, Bytes, Bytes32, UInt, Address
 
 from cartesapp.storage import helpers
 from cartesapp.context import get_metadata
 from cartesapp.input import mutation, query
 from cartesapp.output import add_output, event, emit_event, output
-from cartesapp.utils import bytes2str, str2bytes, hex2bytes
+from cartesapp.utils import str2bytes, hex2bytes
 
 from app.cartridge import Cartridge
 from app.replay import Replay
 from app.common import get_cid
 
-from .common import Bytes32List, Gameplay, Achievement, UserAchievement, Bytes32Optional
+from .common import Bytes32List, Gameplay, Achievement, UserAchievement
 from .riv import replay_hist, replay_screenshot
 
 LOGGER = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ LOGGER = logging.getLogger(__name__)
 
 class ReplayAchievements(BaseModel):
     cartridge_id:   Bytes32
-    outcard_hash:   Bytes32Optional = None
+    outcard_hash:   Bytes32
     args:           String
     in_card:        Bytes
     log:            Bytes
@@ -45,7 +45,7 @@ class CreateAchievementsPayload(BaseModel):
     description:    String
     expression:     String
     icon:           Bytes
-    outcard_hash:   Bytes32Optional = None
+    outcard_hash:   Bytes32
     args:           String
     in_card:        Bytes
     log:            Bytes
@@ -98,7 +98,8 @@ class AchievementInfo(BaseModel):
     icon: Optional[str]
     users: Optional[List[UserAchievementInfo]]
     player_achieved: Optional[bool]
-    total_cartridge_players: Optional[int]
+    total_cartridge_players: int
+    total_players_achieved: int
 
 @output()
 class AchievementsOutput(BaseModel):
@@ -308,7 +309,7 @@ def achievements(payload: AchievementsPayload) -> bool:
         achievements_query = achievements_query.filter(lambda r: payload.user_address.lower() == r.user_address)
 
     if payload.name is not None:
-        achievements_query = achievements_query.filter(lambda r: payload.name in r.name)
+        achievements_query = achievements_query.filter(lambda r: payload.name.lower() in r.name.lower())
 
     total = achievements_query.count()
 
@@ -330,7 +331,8 @@ def achievements(payload: AchievementsPayload) -> bool:
             achievements = achievements_query.page(payload.page)
     else:
         achievements = achievements_query.fetch()
-    
+        
+    total_cartridge_players = {}
     dict_list_result = []
     for achievement in achievements:
         achievement_dict = achievement.to_dict()
@@ -338,6 +340,12 @@ def achievements(payload: AchievementsPayload) -> bool:
             achievement_dict["player_achieved"] = helpers.count(u for u in achievement.users if u.user_address == payload.player.lower()) > 0
         if achievement.icon is not None: achievement_dict['icon'] = base64.b64encode(achievement.icon)
         dict_list_result.append(achievement_dict)
+        
+        if total_cartridge_players.get(achievement.cartridge_id) is None:
+            total_cartridge_players[achievement.cartridge_id] = helpers.count(r.user_address for r in Gameplay if r.cartridge_id == achievement.cartridge_id)
+        
+        achievement_dict['total_cartridge_players'] = total_cartridge_players[achievement.cartridge_id]
+        achievement_dict['total_players_achieved'] = helpers.count(u for u in achievement.users) 
 
     LOGGER.info(f"Returning {len(dict_list_result)} of {total} Achivemens")
     
@@ -365,6 +373,7 @@ def achievement_info(payload: AchievementPayload) -> bool:
         if achievement.icon is not None: achievement_dict['icon'] = base64.b64encode(achievement.icon)
 
         achievement_dict['total_cartridge_players'] = helpers.count(r.user_address for r in Gameplay if r.cartridge_id == achievement.cartridge_id)
+        achievement_dict['total_players_achieved'] = len(user_achievements)
 
         out = AchievementInfo.parse_obj(achievement_dict)
         add_output(out)
@@ -383,6 +392,17 @@ def get_achievement_id(expression: str, cartridge_id: str) -> str:
 
 def evaluate_gameplay_achievements(cartridge_id, log, args, in_card, replay_outcard_hash, gameplay, achievement_list = None) -> int:
     LOGGER.info("Replaying to get outcard history...")
+
+    # get list of achievements to process
+    achievement_query = helpers.left_join(a for a in Achievement for u in a.users if not u or u.user_address != gameplay.user_address)
+
+    if achievement_list is not None and len(achievement_list) > 0:
+        achievement_query = achievement_query.filter(lambda r: r.id in tuple(achievement_list))
+
+    achievements_to_check = achievement_query.fetch()
+    if len(achievements_to_check) == 0:
+        LOGGER.info("No achievements to check")
+        return
 
     # process replay
     try:
@@ -410,21 +430,10 @@ def evaluate_gameplay_achievements(cartridge_id, log, args, in_card, replay_outc
 
     LOGGER.info(f"==== OUTHIST ====")
     LOGGER.info(f"Outhist size: {len(outhist)}")
-    LOGGER.info(f"FInal outcard: {outhist[-1]}")
+    LOGGER.info(f"Final outcard: {outhist[-1]}")
 
     if not outcard_valid:
         raise Exception(f"Out card hash doesn't match")
-
-    # get list of achievements to process
-    achievement_query = helpers.left_join(a for a in Achievement for u in a.users if u is None)
-
-    if achievement_list is not None and len(achievement_list) > 0:
-        achievement_query = achievement_query.filter(lambda r: r.id in tuple(achievement_list))
-
-    achievements_to_check = achievement_query.fetch()
-    if len(achievements_to_check) == 0:
-        LOGGER.info("No achievements to check")
-        return
 
     n_achievements_acquired = 0
     LOGGER.info(f"==== ACHIEVEMENTS ====")

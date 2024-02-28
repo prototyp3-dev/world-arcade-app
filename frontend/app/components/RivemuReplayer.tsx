@@ -1,15 +1,19 @@
 "use client"
 
 import Script from "next/script";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { SelectedMomentsContext } from "./SelectedMomentsProvider";
 
 import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import RestartIcon from '@mui/icons-material/RestartAlt';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import { ethers } from "ethers";
 
 export interface RivemuReplayerGameplay {
     id:string,
     log:Uint8Array,
+    achievementId?:number,
     achievementFrame?:number
 }
 
@@ -18,6 +22,8 @@ export default function RivemuReplayer({cartridgeData, gameplay}:{cartridgeData:
     const [overallScore, setOverallScore] = useState(0);
     const [currFrame, setCurrFrame] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
+
+    const {pickMoment} = useContext(SelectedMomentsContext);
     
     
     const inCard = new Uint8Array([]);
@@ -191,6 +197,26 @@ export default function RivemuReplayer({cartridgeData, gameplay}:{cartridgeData:
                                     <PlayArrowIcon/>
                             }
                     </button>
+                    
+                    {
+                        isPlaying?
+                            <button className="bg-gray-700 text-white border border-gray-700 hover:border-black"
+                            onKeyDown={() => null} onKeyUp={() => null}
+                            onClick={() => pickMoment({
+                                    gameplay_id: gameplay.id,
+                                    frame: currFrame,
+                                    args: args,
+                                    in_card: ethers.utils.hexlify(inCard),
+                                    outcard_hash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+                                    user_achievement: gameplay.achievementId? gameplay.achievementId: 0,
+                                    log: ethers.utils.hexlify(gameplay.log)
+                                })
+                            }>
+                                <ThumbUpIcon/>
+                            </button>
+                        :
+                            ""
+                    }
                 </div>
                 <Script src="/rivemu.js?" strategy="lazyOnload" />
             </section>

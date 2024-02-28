@@ -76,3 +76,15 @@ section {
 .gameplay-screen {
   @apply w-[640px] h-[480px] md:w-[720px] md:h-[540px] lg:w-[960px] lg:h-[720px];
 }
+
+.expand-log-btn {
+  @apply absolute right-0 top-0 origin-bottom-right -rotate-90;
+}
+
+.expand-log-btn > button {
+  @apply element font-medium p-1 border-t border-x border-current;
+}
+
+.expand-log-btn > button:hover {
+  @apply hover-color;
+}

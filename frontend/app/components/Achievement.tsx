@@ -42,7 +42,7 @@ export default function Achievement({achievement}:{achievement:AchievementInfo})
         obtainedPercentage = (achievement.users.length / achievement.total_cartridge_players) *100;
     }
 
-    async function playReplay(gameplayId:string, achievementFrame:number) {
+    async function playReplay(gameplayId:string, achievementId:number, achievementFrame:number) {
         const snakeCartridgeId = "b8544d95861d5d47094e743fc291e7bc2c30ca662ff7b1daf91c66157f6165ce";
         let data;
         if (!cartridgeData) {
@@ -53,7 +53,7 @@ export default function Achievement({achievement}:{achievement:AchievementInfo})
 
         // change to achievement.cartridge_id later
         const gameplayData = await getGameplayLog(gameplayId);
-        setGameplayData({id: gameplayId, log:gameplayData, achievementFrame: achievementFrame});
+        setGameplayData({id: gameplayId, log:gameplayData, achievementId: achievementId, achievementFrame: achievementFrame});
     }
 
     return (
@@ -120,7 +120,7 @@ export default function Achievement({achievement}:{achievement:AchievementInfo})
                                         <td className="px-12 py-4">
                                             {
                                                 userAchievement.gameplay_id && userAchievement.gameplay_id.length > 0?
-                                                    <button title='Play Log' className='hover:text-gray-500' onClick={() => playReplay(userAchievement.gameplay_id!, userAchievement.frame)}><span><OndemandVideoIcon/></span></button>
+                                                    <button title='Play Log' className='hover:text-gray-500' onClick={() => playReplay(userAchievement.gameplay_id!, userAchievement.id, userAchievement.frame)}><span><OndemandVideoIcon/></span></button>
                                                 :
                                                     <></>
                                             }

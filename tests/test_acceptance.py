@@ -50,10 +50,13 @@ ICON = icon
 NEW_ACHIEVEMT_NAME = 'First Steps'
 CREATED_ACHIEVEMENT_ID = None
 
-SECOND_USER = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
+USER2_ADDRESS = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
 CREATED_GAMEPLAY_ID = None
 
 USER_ACHIEVEMENT_ID = None
+
+ERC20_PORTAL_ADDRESS = "0x9C21AEb2093C32DDbC53eEF24B873BDCd1aDa1DB"
+ERC20_ADDRESS = os.getenv('ACCEPTED_ERC20_ADDRESS')
 
 @pytest.fixture(scope='session')
 def dapp_client() -> TestClient:
@@ -184,7 +187,7 @@ def test_should_create_achievement(
     ).to_bytes()
 
     hex_payload = '0x' + (header + create_achievement_replay2_payload).hex()
-    dapp_client.send_advance(hex_payload=hex_payload,msg_sender=SECOND_USER)
+    dapp_client.send_advance(hex_payload=hex_payload,msg_sender=USER2_ADDRESS)
 
     assert dapp_client.rollup.status
 
@@ -247,7 +250,7 @@ def test_should_revalidate_replay1(
 @pytest.mark.order(after="test_should_create_achievement")
 def test_should_retrieve_new_gameplay(dapp_client: TestClient):
 
-    path = f'achievements/gameplays?user_address={SECOND_USER}'
+    path = f'achievements/gameplays?user_address={USER2_ADDRESS}'
     inspect_payload = '0x' + path.encode('ascii').hex()
     dapp_client.send_inspect(hex_payload=inspect_payload)
 
@@ -323,6 +326,41 @@ def test_create_moment_on_replay2(
 
     assert len(dapp_client.rollup.notices) - last_notices_len == 1
 
+
+# @pytest.mark.order(after="test_should_insert_cartridge")
+# def test_should_deposit_to_wallet(dapp_client: TestClient):
+#     # generate erc20 portal payload
+#     deposit = DepositErc20Payload(
+#         result=True,
+#         token=ERC20_ADDRESS,
+#         sender=USER_ADDRESS,
+#         amount=1000 * USDC_UNIT,
+#         execLayerData=b'',
+#     )
+#     hex_payload = '0x' + encode_model(deposit, packed=True).hex()
+
+#     # Send deposit
+#     dapp_client.send_advance(
+#         hex_payload=hex_payload,
+#         msg_sender=ERC20_PORTAL_ADDRESS,
+#     )
+
+#     assert dapp_client.rollup.status
+
+#     # Query inspect
+#     path = f'wallet/balance/{USER_ADDRESS}'
+#     inspect_payload = '0x' + path.encode('ascii').hex()
+#     dapp_client.send_inspect(hex_payload=inspect_payload)
+
+#     assert dapp_client.rollup.status
+
+#     report = dapp_client.rollup.reports[-1]['data']['payload']
+#     report = bytes.fromhex(report[2:])
+#     report = json.loads(report.decode('utf-8'))
+#     assert isinstance(report, dict)
+
+#     assert isinstance(report.get('erc20'), dict)
+#     assert report['erc20'].get(ERC20_USDC_ADDRESS.lower()) == 1000 * USDC_UNIT
 
 @pytest.fixture()
 def create_moment_frame_replay2_payload() -> bytes:

@@ -34,11 +34,16 @@ function Navbar() {
                 Gameplays
             </Link>
 
-            <Link href={"/moments"} className={`invisible md:visible h-full grid grid-cols-1 items-center navbar-item ${pathname === "/moments" ? "navbar-item-active" : "" }`}>
-                Moments
-            </Link>
-
             <div className='flex-1 flex justify-end'>
+                {
+                    wallet?
+                        <Link href={"/dashboard"} className={`invisible md:visible h-full grid grid-cols-1 items-center navbar-item ${pathname === "/dashboard" ? "navbar-item-active" : "" }`}>
+                            Dashboard
+                        </Link>
+                    :
+                        <></>
+                }
+                
                 <button className='navbar-item' disabled={connecting}
                     onClick={() => (wallet ? disconnect(wallet) : connect())}
                 >

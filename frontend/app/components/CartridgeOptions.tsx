@@ -53,15 +53,6 @@ export default function CartridgeOptions({props}:{props:CartridgeOptionProps}) {
                     className={({selected}) => {return selected?"tabs-option-selected":"tabs-option"}}
                     >
                         <span className='flex justify-center items-center text-xl'>
-                            <MovieIcon/>
-                            <span className="ms-1">Moments</span>
-                        </span>
-                </Tab>
-
-                <Tab
-                    className={({selected}) => {return selected?"tabs-option-selected":"tabs-option"}}
-                    >
-                        <span className='flex justify-center items-center text-xl'>
                             <VideogameAssetIcon/>
                             <span className="ms-1">Play</span>
                         </span>
@@ -79,10 +70,6 @@ export default function CartridgeOptions({props}:{props:CartridgeOptionProps}) {
     
                 <Tab.Panel className="">
                     List of Gameplays for {props.cartridge.name}
-                </Tab.Panel>
-
-                <Tab.Panel className="">
-                    List of Moments for {props.cartridge.name}
                 </Tab.Panel>
 
                 <Tab.Panel className="">

@@ -6,20 +6,40 @@
  */
 
 export interface _Master_ {
+  TransferEtherPayload: TransferEtherPayload;
+  TransferErc721Payload: TransferErc721Payload;
+  WithdrawErc721Payload: WithdrawErc721Payload;
+  WithdrawEtherPayload: WithdrawEtherPayload;
   TransferErc20Payload: TransferErc20Payload;
   withdrawErc721: WithdrawErc721;
   WithdrawErc20Payload: WithdrawErc20Payload;
   Erc721Event: Erc721Event;
   WalletOutput: WalletOutput;
   withdrawErc20: WithdrawErc20;
-  TransferEtherPayload: TransferEtherPayload;
   Erc20Event: Erc20Event;
-  WithdrawEtherPayload: WithdrawEtherPayload;
   withdrawEther: WithdrawEther;
   EtherEvent: EtherEvent;
   BalancePayload: BalancePayload;
-  TransferErc721Payload: TransferErc721Payload;
-  WithdrawErc721Payload: WithdrawErc721Payload;
+}
+export interface TransferEtherPayload {
+  receiver: string;
+  amount: number;
+  execLayerData: string;
+}
+export interface TransferErc721Payload {
+  token: string;
+  receiver: string;
+  id: number;
+  execLayerData: string;
+}
+export interface WithdrawErc721Payload {
+  token: string;
+  id: number;
+  execLayerData: string;
+}
+export interface WithdrawEtherPayload {
+  amount: number;
+  execLayerData: string;
 }
 export interface TransferErc20Payload {
   token: string;
@@ -63,20 +83,11 @@ export interface WithdrawErc20 {
   user: string;
   amount: number;
 }
-export interface TransferEtherPayload {
-  receiver: string;
-  amount: number;
-  execLayerData: string;
-}
 export interface Erc20Event {
   user: string;
   address: string;
   mod_amount: number;
   balance: number;
-}
-export interface WithdrawEtherPayload {
-  amount: number;
-  execLayerData: string;
 }
 export interface WithdrawEther {
   user: string;
@@ -89,15 +100,4 @@ export interface EtherEvent {
 }
 export interface BalancePayload {
   address: string;
-}
-export interface TransferErc721Payload {
-  token: string;
-  receiver: string;
-  id: number;
-  execLayerData: string;
-}
-export interface WithdrawErc721Payload {
-  token: string;
-  id: number;
-  execLayerData: string;
 }

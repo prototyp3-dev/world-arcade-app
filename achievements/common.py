@@ -6,6 +6,7 @@ from cartesi.abi import ABIType
 from cartesapp.storage import Entity, helpers, seed
 from cartesapp.setup import setup
 from cartesapp.utils import uint2hex256
+from cartesapp.output import add_output
 
 
 UInt256List = Annotated[List[int], ABIType('uint256[]')]
@@ -19,10 +20,15 @@ Bytes32Optional = Annotated[Optional[bytes], ABIType('bytes32')]
 ###
 # Consts
 
-ACCEPTED_ERC20_ADDRESS = None
-MIN_FEE_VALUE = 1_000_000_000_000_000_000
-MIN_RIVES_TREASURY_SHARES = 10 # sum up to MAX_FEE_SHARES
-MAX_FEE_SHARES = 1000 # percentage converted to 1k to avoid floats
+# TODO: Allow any value for wallet, address but avoid notices
+class AppSetings:
+    TREASURY_ADDRESS = "0x" + "0"*40
+    PROTOCOL_ADDRESS = "0x" + "f"*40
+    ACCEPTED_ERC20_ADDRESS = None
+    MIN_FEE_VALUE = 1_000_000_000_000_000_000
+    MIN_RIVES_TREASURY_SHARES = 10 # sum up to MAX_FEE_SHARES
+    MAX_FEE_SHARES = 10000 # percentage converted to 10k to avoid floats
+    INITIAL_SHARE_OFFER = 1099511627776
 
 
 ###
@@ -30,8 +36,8 @@ MAX_FEE_SHARES = 1000 # percentage converted to 1k to avoid floats
 
 @setup()
 def setup_accpeted_erc20():
-    ACCEPTED_ERC20_ADDRESS = os.getenv('ACCEPTED_ERC20_ADDRESS')
-    if ACCEPTED_ERC20_ADDRESS is None: raise Exception("Please define an accepted ERC20")
+    AppSetings.ACCEPTED_ERC20_ADDRESS = os.getenv('ACCEPTED_ERC20_ADDRESS')
+    if AppSetings.ACCEPTED_ERC20_ADDRESS is None: raise Exception("Please define an accepted ERC20")
 
 
 ###
@@ -44,7 +50,8 @@ class Gameplay(Entity):
     timestamp           = helpers.Required(int)
     args_hash           = helpers.Required(str, 64)
     in_card_hash        = helpers.Required(str, 64)
-    share_value         = helpers.Required(int)
+    share_value         = helpers.Required(str, 66) # in hex 
+    total_shares        = helpers.Required(int, size=64)
     user_achievements   = helpers.Set("UserAchievement", lazy=True)
     moments             = helpers.Set("Moment", lazy=True)
 
@@ -60,23 +67,25 @@ class Achievement(Entity):
     users           = helpers.Set("UserAchievement", lazy=True)
 
 class UserAchievement(Entity):
-    # id              = helpers.PrimaryKey(int, auto=True)
     user_address    = helpers.Required(str, 42, index=True)
     achievement     = helpers.Required(Achievement, index=True)
     gameplay        = helpers.Required(Gameplay, index=True)
     timestamp       = helpers.Required(int)
     frame           = helpers.Required(int)
     index           = helpers.Required(int)
-    helpers.PrimaryKey(user_address,achievement)
+    moments         = helpers.Set("Moment", lazy=True)
+    helpers.composite_key(user_address,achievement)
  
 class Moment(Entity):
-    id              = helpers.Required(str, 64)
+    id              = helpers.PrimaryKey(int, auto=True)
     user_address    = helpers.Required(str, 42, index=True)
     timestamp       = helpers.Required(int)
     frame           = helpers.Required(int)
-    shares          = helpers.Required(int)
+    index           = helpers.Required(int)
+    shares          = helpers.Required(int, size=64)
     gameplay        = helpers.Required(Gameplay, index=True)
-    helpers.PrimaryKey(user_address,gameplay)
+    user_achievement= helpers.Optional(UserAchievement, lazy=True)
+    # helpers.composite_key(user_address,gameplay)
 
 class MomentPriceModel(Entity):
     id              = helpers.PrimaryKey(int, auto=True)
@@ -88,11 +97,18 @@ class CartridgeMomentPrice(Entity):
     cartridge_id            = helpers.Required(str, 64, index=True)
     evaluation              = helpers.Optional(helpers.Json) 
     fee_value               = helpers.Required(str, 66) # in hex 
-    developer_share         = helpers.Required(int) # sum up to MAX_FEE_SHARES - MIN_RIVES_TREASURY_SHARES
-    collectors_share        = helpers.Required(int) # sum up to MAX_FEE_SHARES - MIN_RIVES_TREASURY_SHARES
-    collectors_pool_share   = helpers.Required(int) # sum up to MAX_FEE_SHARES - MIN_RIVES_TREASURY_SHARES
+    developer_cut           = helpers.Required(int) # sum up to MAX_FEE_SHARES - MIN_RIVES_TREASURY_SHARES
+    player_cut              = helpers.Required(int) # sum up to MAX_FEE_SHARES - MIN_RIVES_TREASURY_SHARES
+    collectors_cut          = helpers.Required(int) # sum up to MAX_FEE_SHARES - MIN_RIVES_TREASURY_SHARES
+    share_purchase          = helpers.Required(int) # sum up to MAX_FEE_SHARES - MIN_RIVES_TREASURY_SHARES
     model                   = helpers.Required(MomentPriceModel, index=True)
 
+
+
+def return_error(msg,logger):
+    logger.error(msg)
+    add_output(msg,tags=['error'])
+    return False
 
 ###
 # Seed
@@ -106,100 +122,101 @@ def initialize_moment():
     # create model for games in misc
     
     from os import listdir
-    from os.path import isfile
-    import glob
-    from app.cartridge import generate_cartridge_id
+    import json
+    from app.riv import riv_get_cartridges_path, riv_get_cartridge_info
     from .achievement import get_achievement_id
 
-    cartridges = [f for f in glob.glob('misc/*.sqfs') if isfile(f)]
-    for cartridge_path in cartridges:
-        with open(cartridge_path,'rb') as f:
-            data = f.read()
-            cartridge_id = generate_cartridge_id(data)
-            p = CartridgeMomentPrice(
-                cartridge_id = cartridge_id,
-                model = m,
-                evaluation = {"a":MIN_FEE_VALUE, "b":MIN_FEE_VALUE},
-                fee_value = uint2hex256(MIN_FEE_VALUE),
-                developer_share = int(MAX_FEE_SHARES*0.5),
-                collectors_share = int(MAX_FEE_SHARES*0.4),
-                collectors_pool_share = int(MAX_FEE_SHARES*0.05)
+    for cartridge_id in listdir(riv_get_cartridges_path()):
+        # TODO: Create validation for fee values
+        p = CartridgeMomentPrice(
+            cartridge_id = cartridge_id,
+            model = m,
+            evaluation = {"a":AppSetings.MIN_FEE_VALUE*2, "b":AppSetings.MIN_FEE_VALUE*10},
+            fee_value = uint2hex256(AppSetings.MIN_FEE_VALUE),
+            developer_cut = int(AppSetings.MAX_FEE_SHARES*0.5),
+            player_cut = int(AppSetings.MAX_FEE_SHARES*0.3),
+            collectors_cut = int(AppSetings.MAX_FEE_SHARES*0.1),
+            share_purchase = int(AppSetings.MAX_FEE_SHARES*0.05)
+        )
+
+        cartridge_info = riv_get_cartridge_info(cartridge_id)
+        
+        # validate info
+        cartridge_info_json = json.loads(cartridge_info)
+
+        if cartridge_info_json['name'].lower() == 'antcopter':
+            # with open('misc/achievement-icon.jpeg','rb') as f: icon = f.read()
+            expression = "berries == 0 and deaths == 20 and frames > 0 and finished"
+            a = Achievement(
+                id              = get_achievement_id(expression, cartridge_id),
+                name            = "Starved to Death",
+                description     = "Lose all lives Without getting any berries",
+                cartridge_id    = cartridge_id,
+                created_by      = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                created_at      = 0,
+                expression      = expression,
+                icon            = None
+            )
+            
+            expression = "level == 3"
+            a = Achievement(
+                id              = get_achievement_id(expression, cartridge_id),
+                name            = "Amphicis",
+                description     = "Complete Level 3",
+                cartridge_id    = cartridge_id,
+                created_by      = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                created_at      = 0,
+                expression      = expression,
+                icon            = None
+            )
+            
+            expression = "level == 5"
+            a = Achievement(
+                id              = get_achievement_id(expression, cartridge_id),
+                name            = "Voltutheas",
+                description     = "Complete Level 5",
+                cartridge_id    = cartridge_id,
+                created_by      = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                created_at      = 0,
+                expression      = expression,
+                icon            = None
+            )
+            
+            expression = "level == 10"
+            a = Achievement(
+                id              = get_achievement_id(expression, cartridge_id),
+                name            = "Aqutesh",
+                description     = "Complete Level 10",
+                cartridge_id    = cartridge_id,
+                created_by      = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                created_at      = 0,
+                expression      = expression,
+                icon            = None
             )
 
-            if os.path.basename(cartridge_path) == 'antcopter.sqfs':
-                with open('misc/achievement-icon.jpeg','rb') as f: icon = f.read()
-                expression = "berries == 0 and deaths == 20 and frames > 0 and finished"
-                achievement_id = get_achievement_id(expression, cartridge_id)
-                a = Achievement(
-                    id              = get_achievement_id(expression, cartridge_id),
-                    name            = "Starved to Death",
-                    description     = "Lose all lives Without getting any berries",
-                    cartridge_id    = cartridge_id,
-                    created_by      = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-                    created_at      = 0,
-                    expression      = expression,
-                    icon            = icon
-                )
-                
-                expression = "level == 3"
-                a = Achievement(
-                    id              = get_achievement_id(expression, cartridge_id),
-                    name            = "Amphicis",
-                    description     = "Complete Level 3",
-                    cartridge_id    = cartridge_id,
-                    created_by      = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-                    created_at      = 0,
-                    expression      = expression,
-                    icon            = None
-                )
-                
-                expression = "level == 5"
-                a = Achievement(
-                    id              = get_achievement_id(expression, cartridge_id),
-                    name            = "Voltutheas",
-                    description     = "Complete Level 5",
-                    cartridge_id    = cartridge_id,
-                    created_by      = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-                    created_at      = 0,
-                    expression      = expression,
-                    icon            = None
-                )
-                
-                expression = "level == 10"
-                a = Achievement(
-                    id              = get_achievement_id(expression, cartridge_id),
-                    name            = "Aqutesh",
-                    description     = "Complete Level 10",
-                    cartridge_id    = cartridge_id,
-                    created_by      = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-                    created_at      = 0,
-                    expression      = expression,
-                    icon            = None
-                )
+            expression = "level == 20 and deaths < 20 and finished"
+            a = Achievement(
+                id              = get_achievement_id(expression, cartridge_id),
+                name            = "Expana",
+                description     = "Complete Level 10",
+                cartridge_id    = cartridge_id,
+                created_by      = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                created_at      = 0,
+                expression      = expression,
+                icon            = None
+            )
 
-                expression = "level == 20 and deaths < 20 and finished"
-                a = Achievement(
-                    id              = get_achievement_id(expression, cartridge_id),
-                    name            = "Expana",
-                    description     = "Complete Level 10",
-                    cartridge_id    = cartridge_id,
-                    created_by      = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-                    created_at      = 0,
-                    expression      = expression,
-                    icon            = None
-                )
-
-                expression = "not (berries - 40)"
-                a = Achievement(
-                    id              = get_achievement_id(expression, cartridge_id),
-                    name            = "Gatherer",
-                    description     = "Obtain 40 Fruits",
-                    cartridge_id    = cartridge_id,
-                    created_by      = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-                    created_at      = 0,
-                    expression      = expression,
-                    icon            = None
-                )
+            expression = "not (berries - 40)"
+            a = Achievement(
+                id              = get_achievement_id(expression, cartridge_id),
+                name            = "Gatherer",
+                description     = "Obtain 40 Fruits",
+                cartridge_id    = cartridge_id,
+                created_by      = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                created_at      = 0,
+                expression      = expression,
+                icon            = None
+            )
                 
 
 

@@ -1,26 +1,18 @@
-import os
 from pydantic import BaseModel
 import logging
 from typing import Optional, List
-from hashlib import sha256
-import json
-from py_expression_eval import Parser
 import base64
 
-from cartesi.abi import String, Bytes, Bytes32, Int, UInt, Address
+from cartesi.abi import String, UInt
 
 from cartesapp.storage import helpers
 from cartesapp.input import  query
 from cartesapp.output import add_output, output
-from cartesapp.utils import bytes2str, str2bytes, hex2bytes
+from cartesapp.utils import hex2562int
 
-from app.cartridge import Cartridge
-from app.replay import Replay
-from app.common import get_cid
-
-from .common import Bytes32List, Gameplay, Achievement, UserAchievement
-from .riv import replay_hist, replay_screenshot
-from .achievement import AchievementInfo, UserAchievementInfo
+from .achievement import UserAchievementInfo
+from .moment import MomentInfo
+from .common import Gameplay
 
 LOGGER = logging.getLogger(__name__)
 
@@ -43,13 +35,6 @@ class GameplayPayload(BaseModel):
     id: str
 
 # Outputs
-
-class MomentInfo(BaseModel):
-    id: String
-    user_address: String
-    timestamp: UInt
-    frame: UInt
-    shares: UInt
 
 @output()
 class GameplayInfo(BaseModel):
@@ -105,7 +90,11 @@ def gameplays(payload: GameplaysPayload) -> bool:
     else:
         gameplays = gameplays_query.fetch()
     
-    dict_list_result = [r.to_dict() for r in gameplays]
+    dict_list_result = []
+    for gameplay in gameplays:
+        gameplay_dict = gameplay.to_dict()
+        gameplay_dict['share_value'] = hex2562int(gameplay.share_value)
+        dict_list_result.append(gameplay_dict)
 
     LOGGER.info(f"Returning {len(dict_list_result)} of {total} Gameplays")
     
@@ -133,10 +122,11 @@ def gameplay_info(payload: GameplayPayload) -> bool:
             user_achievements.append(user_achievement_dict)
 
         gameplay_dict['achievements'] = user_achievements
+        gameplay_dict['share_value'] = hex2562int(gameplay.share_value)
 
         moments = []
         for moment in gameplay.moments:
-            moment_dict = user_achievement.to_dict()
+            moment_dict = moment.to_dict()
             moments.append(moment_dict)
         out = GameplayInfo.parse_obj(gameplay_dict)
         add_output(out)

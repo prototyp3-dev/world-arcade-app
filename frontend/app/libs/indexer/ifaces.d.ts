@@ -6,17 +6,8 @@
  */
 
 export interface _Master_ {
-  IndexerPayload: IndexerPayload;
   IndexerOutput: IndexerOutput;
-}
-export interface IndexerPayload {
-  tags?: string[];
-  output_type?: string;
-  msg_sender?: string;
-  timestamp_gte?: number;
-  timestamp_lte?: number;
-  module?: string;
-  input_index?: number;
+  IndexerPayload: IndexerPayload;
 }
 export interface IndexerOutput {
   data: OutputIndex[];
@@ -27,4 +18,13 @@ export interface OutputIndex {
   class_name: string;
   input_index: number;
   output_index: number;
+}
+export interface IndexerPayload {
+  tags?: string[];
+  output_type?: string;
+  msg_sender?: string;
+  timestamp_gte?: number;
+  timestamp_lte?: number;
+  module?: string;
+  input_index?: number;
 }

@@ -3,16 +3,57 @@
 import Image from "next/image";
 import OndemandVideoIcon from '@mui/icons-material/OndemandVideo';
 import { AchievementInfo } from "@/app/libs/achievements/ifaces";
+import { cache, useState } from "react";
 
-export default function Achievement({achievement}:{achievement:AchievementInfo}) {
-    function playReplay(userAchievement: any): void {
-        throw new Error("Function not implemented.");
+import { cartridge as CartridgeData, getOutputs } from '../libs/app/lib';
+import { envClient } from "../utils/clientEnv";
+import RivemuReplayer from "./RivemuReplayer";
+import { RivemuReplayerGameplay } from "./RivemuReplayer";
+
+const getCartridgeData = cache(async (id:string) => {
+	const data = await CartridgeData({id:id},{decode:true,decodeModel:"bytes", cartesiNodeUrl: envClient.CARTESI_NODE_URL, cache:"force-cache"});
+
+    return data;
+})
+
+const getGameplayLog = cache(async (gameplayId:string) => {
+    const gameplayLog:Array<Uint8Array> = await getOutputs(
+        {
+            tags: [ "replay", gameplayId ],
+            output_type: 'report'
+        },
+        {cartesiNodeUrl: envClient.CARTESI_NODE_URL}
+    );
+
+    if (gameplayLog.length > 0) {
+        return gameplayLog[0];
     }
 
+    return new Uint8Array();
+})
+
+
+export default function Achievement({achievement}:{achievement:AchievementInfo}) {
+    const [cartridgeData, setCartridgeData] = useState<Uint8Array | null>(null);
+    const [gameplayData, setGameplayData] = useState<RivemuReplayerGameplay | null>(null);
     let obtainedPercentage:number = 0.0;
 
     if (achievement.users && achievement.total_cartridge_players) {
         obtainedPercentage = (achievement.users.length / achievement.total_cartridge_players) *100;
+    }
+
+    async function playReplay(gameplayId:string, achievementId:number, achievementFrame:number) {
+        const snakeCartridgeId = "b8544d95861d5d47094e743fc291e7bc2c30ca662ff7b1daf91c66157f6165ce";
+        let data;
+        if (!cartridgeData) {
+            // change to achievement.cartridge_id later
+            data = await getCartridgeData(snakeCartridgeId);
+            setCartridgeData(data);
+        }
+
+        // change to achievement.cartridge_id later
+        const gameplayData = await getGameplayLog(gameplayId);
+        setGameplayData({id: gameplayId, log:gameplayData, achievementId: achievementId, achievementFrame: achievementFrame});
     }
 
     return (
@@ -45,11 +86,14 @@ export default function Achievement({achievement}:{achievement:AchievementInfo})
 
 
             <div className="w-full flex justify-center">
-                <table className="w-max">
+                <table className="w-max text-center">
                     <thead className="font-bold">
                         <tr className="border-b">
                             <th className="px-12 py-3">
                                 ID
+                            </th>
+                            <th className="px-12 py-3">
+                                User
                             </th>
                             <th className="px-12 py-3">
                                 Date
@@ -68,10 +112,18 @@ export default function Achievement({achievement}:{achievement:AchievementInfo})
                                             {userAchievement.index}
                                         </td>
                                         <td className="px-12 py-4">
+                                            {userAchievement.user_address}
+                                        </td>
+                                        <td className="px-12 py-4">
                                             {new Date(userAchievement.timestamp*1000).toLocaleString()}
                                         </td>
                                         <td className="px-12 py-4">
-                                            <button title='Play Log' className='hover:text-gray-500' onClick={() => playReplay(userAchievement.gameplay_id)}><span><OndemandVideoIcon/></span></button>
+                                            {
+                                                userAchievement.gameplay_id && userAchievement.gameplay_id.length > 0?
+                                                    <button title='Play Log' className='hover:text-gray-500' onClick={() => playReplay(userAchievement.gameplay_id!, userAchievement.id, userAchievement.frame)}><span><OndemandVideoIcon/></span></button>
+                                                :
+                                                    <></>
+                                            }
                                         </td>
                                     </tr>
                                 )
@@ -81,7 +133,12 @@ export default function Achievement({achievement}:{achievement:AchievementInfo})
                 </table>
             </div>
 
-
+            {
+                cartridgeData && gameplayData?
+                    <RivemuReplayer cartridgeData={cartridgeData} gameplay={gameplayData} />
+                :
+                    <></>
+            }
         </div>
     );
 }

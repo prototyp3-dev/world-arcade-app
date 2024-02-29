@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="container">
+    <html lang="en-US" className="container">
       <Web3OnboardProviderClient>
         <body className={inter.className}>
           <Navbar/>

@@ -37,7 +37,7 @@ export default function CartridgeAchievements({cartridge_id}:{cartridge_id?:stri
 
 
     return (
-        <div className="element rounded grid grid-cols-6 items-center justify-items-center">
+        <div className="element rounded grid grid-cols-6 items-start justify-items-center">
             <Link className="flex flex-col items-center p-4 text-center hover-color" href={`/achievement/create/${selectedCartridgeId}`}>
                 <div className="border-4 rounded-full">
                     <AddIcon style={{width: "128px", height: "128px"}}/>
@@ -47,7 +47,7 @@ export default function CartridgeAchievements({cartridge_id}:{cartridge_id?:stri
 
             {
                 !achievements?
-                    <div className="btn w-full p-4 flex justify-center element">
+                    <div className="btn w-full p-4 place-self-center flex justify-center element">
                         <div className='w-16 h-16 border-2 rounded-full border-current border-r-transparent animate-spin'></div>
                     </div>
                 :
@@ -62,9 +62,9 @@ export default function CartridgeAchievements({cartridge_id}:{cartridge_id?:stri
                                     height={128}
                                 />
                                 <span className="text-2xl">{achievement.name}</span>
-                                <div className="w-[128px] bg-gray-200 rounded-full h-4 my-4">
+                                <div className="relative w-[128px] bg-gray-400 rounded-full h-4 my-4">
                                     <div className="element-inside h-4 rounded-full flex justify-center items-center" style={{width: `${obtainedPercentage}%`}}>
-                                        {`${obtainedPercentage}%`}
+                                        <span className="absolute inset-0 flex items-center justify-center text-sm font-medium text-white">{`${obtainedPercentage}%`}</span>
                                     </div>
                                 </div>
                             </Link>

@@ -5,7 +5,7 @@
 FILES = ['achievement','gameplay'] # * Required
 
 # Index outputs in inspect indexer queries
-INDEX_OUTPUTS = False # Defaul: False
+INDEX_OUTPUTS = True # Defaul: False
 
 # Enable endpoint to get address from Dapp relay contract
 ENABLE_DAPP_RELAY = True # Defaul: False

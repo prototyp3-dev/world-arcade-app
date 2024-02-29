@@ -40,7 +40,7 @@ export default function SelectedMoments() {
                         {
                             selectedMoments.map((moment, index) => {
                                 return (
-                                    <li className="py-2 border-b hover:underline">
+                                    <li key={index} className="py-2 border-b hover:underline">
                                         <button className="flex w-full" onClick={() => collectSelectedMoment(index)}>
                                             <Image className="border" width={50} height={50} src={moment.cover} alt={"Cover Not found"}/>
                                             <div className="w-full flex flex-col items-start ms-2">

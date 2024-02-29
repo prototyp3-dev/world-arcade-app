@@ -71,7 +71,7 @@ export function SelectedMomentsProvider({ children }:{ children: React.ReactNode
                 outcard_hash: selectedMoment.outcard_hash
             }, {cartesiNodeUrl: envClient.CARTESI_NODE_URL});    
 
-            setSelectedMoments(selectedMoments.filter((moment, index) => {index !== momentIndex}))
+            setSelectedMoments(selectedMoments.filter((moment, index) => index !== momentIndex))
         } catch(error) {
             alert((error as Error).message);
         }

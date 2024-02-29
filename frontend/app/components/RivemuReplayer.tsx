@@ -9,6 +9,8 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import RestartIcon from '@mui/icons-material/RestartAlt';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import { ethers } from "ethers";
+import { Transition } from "@headlessui/react";
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
 export interface RivemuReplayerGameplay {
     id:string,
@@ -24,6 +26,8 @@ export default function RivemuReplayer({cartridgeData, gameplay}:{cartridgeData:
     const [isPlaying, setIsPlaying] = useState(false);
 
     const {pickMoment} = useContext(SelectedMomentsContext);
+
+    const showAchievementTrophy = gameplay.achievementFrame !== undefined && gameplay.achievementFrame <= currFrame && currFrame <= gameplay.achievementFrame +10;
     
     
     const inCard = new Uint8Array([]);
@@ -161,7 +165,7 @@ export default function RivemuReplayer({cartridgeData, gameplay}:{cartridgeData:
             <section className='gameplay-screen fixed z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
                 <div className='relative bg-gray-500 p-2 text-center'>
                     <span>Score: {overallScore} | Current Frame: {currFrame} {gameplay.achievementFrame? `| Achievement Frame: ${gameplay.achievementFrame}`:""}</span>
-                    <button className="bg-gray-700 text-white absolute top-1 end-2.5 border border-gray-700 hover:border-black"
+                    <button className="element text-white absolute top-1 end-2.5 hover-color"
                         onKeyDown={() => null} onKeyUp={() => null}
                         onClick={() => isPlaying? rivemuStop(true): setIsHidden(true)}
                     >
@@ -187,7 +191,7 @@ export default function RivemuReplayer({cartridgeData, gameplay}:{cartridgeData:
                     </div>
                 </div>
                 <div className="flex bg-gray-500">
-                    <button className="bg-gray-700 text-white border border-gray-700 hover:border-black"
+                    <button className="element text-white hover-color"
                         onKeyDown={() => null} onKeyUp={() => null}
                         onClick={rivemuReplay}>
                             {
@@ -221,6 +225,31 @@ export default function RivemuReplayer({cartridgeData, gameplay}:{cartridgeData:
                 <Script src="/rivemu.js?" strategy="lazyOnload" />
             </section>
             <div className="opacity-60 fixed inset-0 z-0 bg-black" onClick={() => close()}></div>
+            <Transition
+                className={"absolute top-1/2 left-0"}
+                show={showAchievementTrophy}
+                enter="transition-opacity duration-1000"
+                enterFrom="opacity-0"
+                enterTo="opacity-100"
+                leave="transition-opacity duration-1000"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
+            >
+                <EmojiEventsIcon className="text-yellow-500 text-9xl"/>
+            </Transition>
+
+            <Transition
+                className={"absolute top-1/2 right-0"}
+                show={showAchievementTrophy}
+                enter="transition-opacity duration-1000"
+                enterFrom="opacity-0"
+                enterTo="opacity-100"
+                leave="transition-opacity duration-1000"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
+            >
+                <EmojiEventsIcon className="text-yellow-500 text-9xl"/>
+            </Transition>
         </div>
     );
 }

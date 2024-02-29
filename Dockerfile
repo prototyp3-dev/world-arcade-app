@@ -93,7 +93,7 @@ echo "#!/bin/sh
 
 set -e
 
-export ACCEPTED_ERC20_ADDRESS="0xae7f61eCf06C65405560166b259C54031428A9C4"
+export ACCEPTED_ERC20_ADDRESS=0xf795b3D15D47ac1c61BEf4Cc6469EBb2454C6a9b
 export PYTHONPATH=${PYTHONPATH}
 cartesapp run app achievements --log-level info
 " > entrypoint.sh && \

@@ -21,12 +21,14 @@ Bytes32Optional = Annotated[Optional[bytes], ABIType('bytes32')]
 # Consts
 
 # TODO: Allow any value for wallet, address but avoid notices
-TREASURY_ADDRESS = "0x" + "0"*64
-PROTOCOL_ADDRESS = "0x" + "f"*64
-ACCEPTED_ERC20_ADDRESS = None
-MIN_FEE_VALUE = 1_000_000_000_000_000_000
-MIN_RIVES_TREASURY_SHARES = 10 # sum up to MAX_FEE_SHARES
-MAX_FEE_SHARES = 10000 # percentage converted to 10k to avoid floats
+class AppSetings:
+    TREASURY_ADDRESS = "0x" + "0"*40
+    PROTOCOL_ADDRESS = "0x" + "f"*40
+    ACCEPTED_ERC20_ADDRESS = None
+    MIN_FEE_VALUE = 1_000_000_000_000_000_000
+    MIN_RIVES_TREASURY_SHARES = 10 # sum up to MAX_FEE_SHARES
+    MAX_FEE_SHARES = 10000 # percentage converted to 10k to avoid floats
+    INITIAL_SHARE_OFFER = 1099511627776
 
 
 ###
@@ -34,8 +36,8 @@ MAX_FEE_SHARES = 10000 # percentage converted to 10k to avoid floats
 
 @setup()
 def setup_accpeted_erc20():
-    ACCEPTED_ERC20_ADDRESS = os.getenv('ACCEPTED_ERC20_ADDRESS')
-    if ACCEPTED_ERC20_ADDRESS is None: raise Exception("Please define an accepted ERC20")
+    AppSetings.ACCEPTED_ERC20_ADDRESS = os.getenv('ACCEPTED_ERC20_ADDRESS')
+    if AppSetings.ACCEPTED_ERC20_ADDRESS is None: raise Exception("Please define an accepted ERC20")
 
 
 ###
@@ -48,8 +50,8 @@ class Gameplay(Entity):
     timestamp           = helpers.Required(int)
     args_hash           = helpers.Required(str, 64)
     in_card_hash        = helpers.Required(str, 64)
-    share_value         = helpers.Required(int)
-    total_shares        = helpers.Required(float)
+    share_value         = helpers.Required(str, 66) # in hex 
+    total_shares        = helpers.Required(int, size=64)
     user_achievements   = helpers.Set("UserAchievement", lazy=True)
     moments             = helpers.Set("Moment", lazy=True)
 
@@ -80,7 +82,7 @@ class Moment(Entity):
     timestamp       = helpers.Required(int)
     frame           = helpers.Required(int)
     index           = helpers.Required(int)
-    shares          = helpers.Required(int)
+    shares          = helpers.Required(int, size=64)
     gameplay        = helpers.Required(Gameplay, index=True)
     user_achievement= helpers.Optional(UserAchievement, lazy=True)
     # helpers.composite_key(user_address,gameplay)
@@ -129,12 +131,12 @@ def initialize_moment():
         p = CartridgeMomentPrice(
             cartridge_id = cartridge_id,
             model = m,
-            evaluation = {"a":MIN_FEE_VALUE, "b":MIN_FEE_VALUE},
-            fee_value = uint2hex256(MIN_FEE_VALUE),
-            developer_cut = int(MAX_FEE_SHARES*0.5),
-            player_cut = int(MAX_FEE_SHARES*0.3),
-            collectors_cut = int(MAX_FEE_SHARES*0.1),
-            share_purchase = int(MAX_FEE_SHARES*0.05)
+            evaluation = {"a":AppSetings.MIN_FEE_VALUE*2, "b":AppSetings.MIN_FEE_VALUE*10},
+            fee_value = uint2hex256(AppSetings.MIN_FEE_VALUE),
+            developer_cut = int(AppSetings.MAX_FEE_SHARES*0.5),
+            player_cut = int(AppSetings.MAX_FEE_SHARES*0.3),
+            collectors_cut = int(AppSetings.MAX_FEE_SHARES*0.1),
+            share_purchase = int(AppSetings.MAX_FEE_SHARES*0.05)
         )
 
         cartridge_info = riv_get_cartridge_info(cartridge_id)

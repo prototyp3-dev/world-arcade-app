@@ -138,7 +138,7 @@ def replay(payload: Replay) -> bool:
         timestamp           = metadata.timestamp,
         args_hash           = sha256(str2bytes(payload.args)).hexdigest(),
         in_card_hash        = sha256(payload.in_card).hexdigest(),
-        share_value         = 0,
+        share_value         = "0x0",
         total_shares        = 0
     )
     # TODO: index use gameplay from input, so we don't add to the output
@@ -175,7 +175,7 @@ def achievements_replay(payload: ReplayAchievements) -> bool:
             timestamp           = metadata.timestamp,
             args_hash           = sha256(str2bytes(payload.args)).hexdigest(),
             in_card_hash        = sha256(payload.in_card).hexdigest(),
-            share_value         = 0,
+            share_value         = "0x0",
             total_shares        = 0
         )
         add_output(payload.log,tags=['replay',payload.cartridge_id.hex(),gameplay_hash.hexdigest()])
@@ -234,7 +234,7 @@ def create_achievement(payload: CreateAchievementsPayload) -> bool:
             timestamp           = metadata.timestamp,
             args_hash           = sha256(str2bytes(payload.args)).hexdigest(),
             in_card_hash        = sha256(payload.in_card).hexdigest(),
-            share_value         = 0,
+            share_value         = "0x0",
             total_shares        = 0
         )
         add_output(payload.log,tags=['replay',payload.cartridge_id.hex(),gameplay_hash.hexdigest()])

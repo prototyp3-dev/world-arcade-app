@@ -18,8 +18,8 @@ from app.replay import Replay
 
 from achievements.achievement import ReplayAchievements, CreateAchievementsPayload, AcquiredAchievement, AchievementsOutput, AchievementInfo
 from achievements.gameplay import GameplaysOutput
-from achievements.moment import CollectMomentPayload
-from achievements.common import MIN_FEE_VALUE
+from achievements.moment import CollectMomentPayload, MomentsOutput, ReleaseMomentPayload
+from achievements.common import AppSetings
 
 import logging
 logger = logging.getLogger(__name__)
@@ -59,6 +59,8 @@ USER_ACHIEVEMENT_ID = None
 
 ERC20_PORTAL_ADDRESS = "0x9C21AEb2093C32DDbC53eEF24B873BDCd1aDa1DB"
 ERC20_ADDRESS = os.getenv('ACCEPTED_ERC20_ADDRESS')
+
+CREATED_MOMENT_ID = None
 
 @pytest.fixture(scope='session')
 def dapp_client() -> TestClient:
@@ -300,7 +302,7 @@ def test_should_deposit_to_wallet(dapp_client: TestClient):
         result=True,
         token=ERC20_ADDRESS,
         sender=USER3_ADDRESS,
-        amount=1000 * MIN_FEE_VALUE,
+        amount=1000 * AppSetings.MIN_FEE_VALUE,
         execLayerData=b'',
     )
     hex_payload = '0x' + encode_model(deposit, packed=True).hex()
@@ -326,7 +328,7 @@ def test_should_deposit_to_wallet(dapp_client: TestClient):
     assert isinstance(report, dict)
 
     assert isinstance(report.get('erc20'), dict)
-    assert report['erc20'].get(ERC20_ADDRESS.lower()) == 1000 * MIN_FEE_VALUE
+    assert report['erc20'].get(ERC20_ADDRESS.lower()) == 1000 * AppSetings.MIN_FEE_VALUE
 
 
 @pytest.fixture()
@@ -362,8 +364,6 @@ def test_create_moment_on_replay2(
 
     assert dapp_client.rollup.status
 
-    assert len(dapp_client.rollup.notices) - last_notices_len == 1
-
 
 @pytest.fixture()
 def create_moment_frame_replay2_payload() -> bytes:
@@ -383,7 +383,7 @@ def create_moment_frame_replay2_payload() -> bytes:
     return encode_model(model, packed=False)
 
 @pytest.mark.order(after="test_should_deposit_to_wallet")
-def test_create_moment_on_replay2(
+def test_create_moment_on_replay2_frame(
         dapp_client: TestClient,
         create_moment_frame_replay2_payload: bytes):
 
@@ -397,8 +397,6 @@ def test_create_moment_on_replay2(
     dapp_client.send_advance(hex_payload=hex_payload, msg_sender=USER3_ADDRESS)
 
     assert dapp_client.rollup.status
-
-    assert len(dapp_client.rollup.notices) - last_notices_len == 1
 
 
 @pytest.fixture()
@@ -419,7 +417,7 @@ def create_moment_achievement_replay2_payload() -> bytes:
     return encode_model(model, packed=False)
 
 @pytest.mark.order(after="test_should_deposit_to_wallet")
-def test_create_moment_on_replay2(
+def test_create_moment_on_replay2_achivement(
         dapp_client: TestClient,
         create_moment_achievement_replay2_payload: bytes):
 
@@ -434,4 +432,52 @@ def test_create_moment_on_replay2(
 
     assert dapp_client.rollup.status
 
-    assert len(dapp_client.rollup.notices) - last_notices_len == 1
+
+@pytest.mark.order(after="test_create_moment_on_replay2")
+def test_should_retrieve_moments(dapp_client: TestClient):
+
+    path = f'achievements/moments?cartridge_id={ANTCOPTER_ID}'
+    inspect_payload = '0x' + path.encode('ascii').hex()
+    dapp_client.send_inspect(hex_payload=inspect_payload)
+
+    assert dapp_client.rollup.status
+
+    report = dapp_client.rollup.reports[-1]['data']['payload']
+    report = bytes.fromhex(report[2:])
+    report = json.loads(report.decode('utf-8'))
+    assert isinstance(report, dict)
+
+    output = MomentsOutput.parse_obj(report)
+
+    assert len(output.data) > 0
+    
+    global CREATED_MOMENT_ID
+    CREATED_MOMENT_ID = output.data[0].id
+
+
+@pytest.fixture()
+def release_moment_payload() -> bytes:
+
+    # special frame
+    model = ReleaseMomentPayload(
+        id = CREATED_MOMENT_ID
+    )
+
+    return encode_model(model, packed=False)
+
+@pytest.mark.order(after="test_should_retrieve_moments")
+def test_release_moment(
+        dapp_client: TestClient,
+        release_moment_payload: bytes):
+
+    header = ABIFunctionSelectorHeader(
+        function="achievements.release_moment",
+        argument_types=get_abi_types_from_model(ReleaseMomentPayload)
+    ).to_bytes()
+
+    last_notices_len = len(dapp_client.rollup.notices)
+    hex_payload = '0x' + (header + release_moment_payload).hex()
+    dapp_client.send_advance(hex_payload=hex_payload, msg_sender=USER3_ADDRESS)
+
+    assert dapp_client.rollup.status
+

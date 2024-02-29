@@ -2,7 +2,6 @@
 
 import { Tab } from "@headlessui/react";
 import GamesIcon from '@mui/icons-material/Games';
-import MovieIcon from '@mui/icons-material/Movie';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 
@@ -10,6 +9,7 @@ import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 import { CartridgeInfo } from "@/app/libs/app/ifaces";
 import { Suspense } from "react";
 import Rivemu from "@/app/components/Rivemu";
+import CartridgeGameplays from "./CartridgeGameplays";
 
 
 function loadingFallback() {
@@ -69,7 +69,7 @@ export default function CartridgeOptions({props}:{props:CartridgeOptionProps}) {
                 </Tab.Panel>
     
                 <Tab.Panel className="">
-                    List of Gameplays for {props.cartridge.name}
+                    <CartridgeGameplays cartridge_id={props.cartridge.id}/>
                 </Tab.Panel>
 
                 <Tab.Panel className="">

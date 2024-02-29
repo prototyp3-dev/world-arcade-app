@@ -43,11 +43,10 @@ export default function Achievement({achievement}:{achievement:AchievementInfo})
     }
 
     async function playReplay(gameplayId:string, achievementId:number, achievementFrame:number) {
-        const snakeCartridgeId = "b8544d95861d5d47094e743fc291e7bc2c30ca662ff7b1daf91c66157f6165ce";
         let data;
         if (!cartridgeData) {
             // change to achievement.cartridge_id later
-            data = await getCartridgeData(snakeCartridgeId);
+            data = await getCartridgeData(achievement.cartridge_id);
             setCartridgeData(data);
         }
 

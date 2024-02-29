@@ -1,9 +1,14 @@
-export default async function GameplaysPage({ params }: { params: { cartridge_id: string } }) {
+import CartridgeGameplays from "../components/CartridgeGameplays";
+
+
+export default function Gameplays() {
     return (
         <main>
             <section>
-                Gameplays Page {params.cartridge_id}
+                <div className="element rounded p-4">
+                    <CartridgeGameplays />
+                </div>
             </section>
         </main>
-    )
+    );
 }

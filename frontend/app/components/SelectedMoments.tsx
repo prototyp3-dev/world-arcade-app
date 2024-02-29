@@ -15,7 +15,7 @@ export default function SelectedMoments() {
     const [{ wallet }] = useConnectWallet();
     const [showHistory, setShowHistory] = useState(false);
 
-    const {selectedMoments} = useContext(SelectedMomentsContext);
+    const {selectedMoments, collectSelectedMoment} = useContext(SelectedMomentsContext);
     
     if (!wallet) return <></>;
 
@@ -36,21 +36,22 @@ export default function SelectedMoments() {
                 </button>
                 <div className="pb-4 overflow-y-auto">
                     <div className={`sticky top-0 border-b border-current text-xs`}>Total: {selectedMoments.length}</div>
-                    <ul className="mt-2 space-y-2 font-medium">
+                    <ul className="space-y-2 font-medium">
                         {
                             selectedMoments.map((moment, index) => {
                                 return (
-                                    <li className="pb-2 border-b flex space-x-1">
-                                        <Image className="border" width={50} height={50} src={moment.cover} alt={"Cover Not found"}/>
-                                        <div className="flex flex-col">
-                                            <span className="font-bold">
-                                                {moment.gameName}
-                                            </span>
-                                            
-                                            <span>
-                                                Frame: {moment.frame}
-                                            </span>
-                                        </div>
+                                    <li className="py-2 border-b hover:underline">
+                                        <button className="flex w-full" onClick={() => collectSelectedMoment(index)}>
+                                            <Image className="border" width={50} height={50} src={moment.cover} alt={"Cover Not found"}/>
+                                            <div className="w-full flex flex-col items-start ms-2">
+                                                <span className="font-bold">
+                                                    {moment.gameName}
+                                                </span>
+                                                <span>
+                                                    Frame:{moment.frame}
+                                                </span>
+                                            </div>
+                                        </button>
                                     </li>
                                 )
                             })

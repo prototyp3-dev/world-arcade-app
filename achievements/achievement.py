@@ -360,7 +360,7 @@ def _evaluate_gameplay_achievements(cartridge_id, log, args, in_card, replay_out
     LOGGER.info("Replaying to get outcard history...")
 
     # get list of achievements to process
-    achievement_query = helpers.left_join(a for a in Achievement for u in a.users if not u or u.user_address != gameplay.user_address)
+    achievement_query = helpers.left_join(a for a in Achievement for u in a.users if a.cartridge_id == cartridge_id and (not u or u.user_address != gameplay.user_address))
 
     if achievement_list is not None and len(achievement_list) > 0:
         achievement_query = achievement_query.filter(lambda r: r.id in tuple(achievement_list))

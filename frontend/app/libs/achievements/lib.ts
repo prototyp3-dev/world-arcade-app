@@ -94,6 +94,21 @@ export async function collectMoment(
     return result;
 }
 
+export async function releaseMoment(
+    client:Signer,
+    dappAddress:string,
+    inputData: ifaces.ReleaseMomentPayload,
+    options?:MutationOptions
+):Promise<AdvanceOutput|ContractReceipt|any[]> {
+    const data: ReleaseMomentPayload = new ReleaseMomentPayload(inputData);
+    if (options?.decode) { options.sync = true; }
+    const result = await genericAdvanceInput<ifaces.ReleaseMomentPayload>(client,dappAddress,'0xa30ac8ae',data, options)
+    if (options?.decode) {
+        return decodeAdvance(result as AdvanceOutput,decodeToModel,options);
+    }
+    return result;
+}
+
 
 /*
  * Queries/Inspects
@@ -200,9 +215,9 @@ export function exportToModel(data: any, modelName: string): string {
     return exporter(data);
 }
 
-export class ReplayAchievements extends IOData<ifaces.ReplayAchievements> { constructor(data: ifaces.ReplayAchievements, validate: boolean = true) { super(models['ReplayAchievements'],data,validate); } }
-export function exportToReplayAchievements(data: ifaces.ReplayAchievements): string {
-    const dataToExport: ReplayAchievements = new ReplayAchievements(data);
+export class ReleaseMomentPayload extends IOData<ifaces.ReleaseMomentPayload> { constructor(data: ifaces.ReleaseMomentPayload, validate: boolean = true) { super(models['ReleaseMomentPayload'],data,validate); } }
+export function exportToReleaseMomentPayload(data: ifaces.ReleaseMomentPayload): string {
+    const dataToExport: ReleaseMomentPayload = new ReleaseMomentPayload(data);
     return dataToExport.export();
 }
 
@@ -218,15 +233,21 @@ export function exportToCreateAchievementsPayload(data: ifaces.CreateAchievement
     return dataToExport.export();
 }
 
-export class GameplaysPayload extends IOData<ifaces.GameplaysPayload> { constructor(data: ifaces.GameplaysPayload, validate: boolean = true) { super(models['GameplaysPayload'],data,validate); } }
-export function exportToGameplaysPayload(data: ifaces.GameplaysPayload): string {
-    const dataToExport: GameplaysPayload = new GameplaysPayload(data);
+export class ReplayAchievements extends IOData<ifaces.ReplayAchievements> { constructor(data: ifaces.ReplayAchievements, validate: boolean = true) { super(models['ReplayAchievements'],data,validate); } }
+export function exportToReplayAchievements(data: ifaces.ReplayAchievements): string {
+    const dataToExport: ReplayAchievements = new ReplayAchievements(data);
     return dataToExport.export();
 }
 
 export class GameplayPayload extends IOData<ifaces.GameplayPayload> { constructor(data: ifaces.GameplayPayload, validate: boolean = true) { super(models['GameplayPayload'],data,validate); } }
 export function exportToGameplayPayload(data: ifaces.GameplayPayload): string {
     const dataToExport: GameplayPayload = new GameplayPayload(data);
+    return dataToExport.export();
+}
+
+export class AchievementsPayload extends IOData<ifaces.AchievementsPayload> { constructor(data: ifaces.AchievementsPayload, validate: boolean = true) { super(models['AchievementsPayload'],data,validate); } }
+export function exportToAchievementsPayload(data: ifaces.AchievementsPayload): string {
+    const dataToExport: AchievementsPayload = new AchievementsPayload(data);
     return dataToExport.export();
 }
 
@@ -242,9 +263,9 @@ export function exportToMomentsPayload(data: ifaces.MomentsPayload): string {
     return dataToExport.export();
 }
 
-export class AchievementsPayload extends IOData<ifaces.AchievementsPayload> { constructor(data: ifaces.AchievementsPayload, validate: boolean = true) { super(models['AchievementsPayload'],data,validate); } }
-export function exportToAchievementsPayload(data: ifaces.AchievementsPayload): string {
-    const dataToExport: AchievementsPayload = new AchievementsPayload(data);
+export class GameplaysPayload extends IOData<ifaces.GameplaysPayload> { constructor(data: ifaces.GameplaysPayload, validate: boolean = true) { super(models['GameplaysPayload'],data,validate); } }
+export function exportToGameplaysPayload(data: ifaces.GameplaysPayload): string {
+    const dataToExport: GameplaysPayload = new GameplaysPayload(data);
     return dataToExport.export();
 }
 
@@ -274,6 +295,11 @@ export function decodeToMomentsOutput(output: CartesiReport | CartesiNotice | Ca
     return new MomentsOutput(output as CartesiReport);
 }
 
+export class MomentValues extends Output<ifaces.MomentValues> { constructor(output: CartesiReport | InspectReport) { super(models['MomentValues'],output); } }
+export function decodeToMomentValues(output: CartesiReport | CartesiNotice | CartesiVoucher | InspectReport): MomentValues {
+    return new MomentValues(output as CartesiReport);
+}
+
 export class GameplayInfo extends Output<ifaces.GameplayInfo> { constructor(output: CartesiReport | InspectReport) { super(models['GameplayInfo'],output); } }
 export function decodeToGameplayInfo(output: CartesiReport | CartesiNotice | CartesiVoucher | InspectReport): GameplayInfo {
     return new GameplayInfo(output as CartesiReport);
@@ -300,12 +326,12 @@ export function decodeToCollectedMoment(output: CartesiReport | CartesiNotice | 
  */
 
 export const models: Models = {
-    'ReplayAchievements': {
+    'ReleaseMomentPayload': {
         ioType:IOType.mutationPayload,
-        abiTypes:['bytes32', 'bytes32', 'string', 'bytes', 'bytes', 'bytes32[]'],
-        params:['cartridge_id', 'outcard_hash', 'args', 'in_card', 'log', 'achievements'],
-        exporter: exportToReplayAchievements,
-        validator: ajv.compile<ifaces.ReplayAchievements>(JSON.parse('{"title": "ReplayAchievements", "type": "object", "properties": {"cartridge_id": {"type": "string", "format": "binary"}, "outcard_hash": {"type": "string", "format": "binary"}, "args": {"type": "string"}, "in_card": {"type": "string", "format": "binary"}, "log": {"type": "string", "format": "binary"}, "achievements": {"type": "array", "items": {"type": "string", "format": "binary"}}}, "required": ["cartridge_id", "outcard_hash", "args", "in_card", "log", "achievements"]}'))
+        abiTypes:['uint'],
+        params:['id'],
+        exporter: exportToReleaseMomentPayload,
+        validator: ajv.compile<ifaces.ReleaseMomentPayload>(JSON.parse('{"title": "ReleaseMomentPayload", "type": "object", "properties": {"id": {"type": "integer"}}, "required": ["id"]}'))
     },
     'CollectMomentPayload': {
         ioType:IOType.mutationPayload,
@@ -321,12 +347,12 @@ export const models: Models = {
         exporter: exportToCreateAchievementsPayload,
         validator: ajv.compile<ifaces.CreateAchievementsPayload>(JSON.parse('{"title": "CreateAchievementsPayload", "type": "object", "properties": {"cartridge_id": {"type": "string", "format": "binary"}, "name": {"type": "string"}, "description": {"type": "string"}, "expression": {"type": "string"}, "icon": {"type": "string", "format": "binary"}, "outcard_hash": {"type": "string", "format": "binary"}, "args": {"type": "string"}, "in_card": {"type": "string", "format": "binary"}, "log": {"type": "string", "format": "binary"}}, "required": ["cartridge_id", "name", "description", "expression", "icon", "outcard_hash", "args", "in_card", "log"]}'))
     },
-    'GameplaysPayload': {
-        ioType:IOType.queryPayload,
-        abiTypes:[],
-        params:['cartridge_id', 'user_address', 'order_by', 'order_dir', 'page', 'page_size'],
-        exporter: exportToGameplaysPayload,
-        validator: ajv.compile<ifaces.GameplaysPayload>(JSON.parse('{"title": "GameplaysPayload", "type": "object", "properties": {"cartridge_id": {"type": "string"}, "user_address": {"type": "string"}, "order_by": {"type": "string"}, "order_dir": {"type": "string"}, "page": {"type": "integer"}, "page_size": {"type": "integer"}}}'))
+    'ReplayAchievements': {
+        ioType:IOType.mutationPayload,
+        abiTypes:['bytes32', 'bytes32', 'string', 'bytes', 'bytes', 'bytes32[]'],
+        params:['cartridge_id', 'outcard_hash', 'args', 'in_card', 'log', 'achievements'],
+        exporter: exportToReplayAchievements,
+        validator: ajv.compile<ifaces.ReplayAchievements>(JSON.parse('{"title": "ReplayAchievements", "type": "object", "properties": {"cartridge_id": {"type": "string", "format": "binary"}, "outcard_hash": {"type": "string", "format": "binary"}, "args": {"type": "string"}, "in_card": {"type": "string", "format": "binary"}, "log": {"type": "string", "format": "binary"}, "achievements": {"type": "array", "items": {"type": "string", "format": "binary"}}}, "required": ["cartridge_id", "outcard_hash", "args", "in_card", "log", "achievements"]}'))
     },
     'GameplayPayload': {
         ioType:IOType.queryPayload,
@@ -334,6 +360,13 @@ export const models: Models = {
         params:['id'],
         exporter: exportToGameplayPayload,
         validator: ajv.compile<ifaces.GameplayPayload>(JSON.parse('{"title": "GameplayPayload", "type": "object", "properties": {"id": {"type": "string"}}, "required": ["id"]}'))
+    },
+    'AchievementsPayload': {
+        ioType:IOType.queryPayload,
+        abiTypes:[],
+        params:['cartridge_id', 'user_address', 'name', 'order_by', 'order_dir', 'page', 'page_size', 'player'],
+        exporter: exportToAchievementsPayload,
+        validator: ajv.compile<ifaces.AchievementsPayload>(JSON.parse('{"title": "AchievementsPayload", "type": "object", "properties": {"cartridge_id": {"type": "string"}, "user_address": {"type": "string"}, "name": {"type": "string"}, "order_by": {"type": "string"}, "order_dir": {"type": "string"}, "page": {"type": "integer"}, "page_size": {"type": "integer"}, "player": {"type": "string"}}}'))
     },
     'AchievementPayload': {
         ioType:IOType.queryPayload,
@@ -349,19 +382,19 @@ export const models: Models = {
         exporter: exportToMomentsPayload,
         validator: ajv.compile<ifaces.MomentsPayload>(JSON.parse('{"title": "MomentsPayload", "type": "object", "properties": {"cartridge_id": {"type": "string"}, "gameplay_id": {"type": "string"}, "user_address": {"type": "string"}, "order_by": {"type": "string"}, "order_dir": {"type": "string"}, "page": {"type": "integer"}, "page_size": {"type": "integer"}}}'))
     },
-    'AchievementsPayload': {
+    'GameplaysPayload': {
         ioType:IOType.queryPayload,
         abiTypes:[],
-        params:['cartridge_id', 'user_address', 'name', 'order_by', 'order_dir', 'page', 'page_size', 'player'],
-        exporter: exportToAchievementsPayload,
-        validator: ajv.compile<ifaces.AchievementsPayload>(JSON.parse('{"title": "AchievementsPayload", "type": "object", "properties": {"cartridge_id": {"type": "string"}, "user_address": {"type": "string"}, "name": {"type": "string"}, "order_by": {"type": "string"}, "order_dir": {"type": "string"}, "page": {"type": "integer"}, "page_size": {"type": "integer"}, "player": {"type": "string"}}}'))
+        params:['cartridge_id', 'user_address', 'order_by', 'order_dir', 'page', 'page_size'],
+        exporter: exportToGameplaysPayload,
+        validator: ajv.compile<ifaces.GameplaysPayload>(JSON.parse('{"title": "GameplaysPayload", "type": "object", "properties": {"cartridge_id": {"type": "string"}, "user_address": {"type": "string"}, "order_by": {"type": "string"}, "order_dir": {"type": "string"}, "page": {"type": "integer"}, "page_size": {"type": "integer"}}}'))
     },
     'CollectValuePayload': {
         ioType:IOType.queryPayload,
         abiTypes:[],
         params:['id'],
         exporter: exportToCollectValuePayload,
-        validator: ajv.compile<ifaces.CollectValuePayload>(JSON.parse('{"title": "CollectValuePayload", "type": "object", "properties": {"id": {"type": "string"}}, "required": ["id"]}'))
+        validator: ajv.compile<ifaces.CollectValuePayload>(JSON.parse('{"title": "CollectValuePayload", "type": "object", "properties": {"id": {"type": "integer"}}, "required": ["id"]}'))
     },
     'AchievementInfo': {
         ioType:IOType.report,
@@ -390,6 +423,13 @@ export const models: Models = {
         params:['data', 'total', 'page'],
         decoder: decodeToMomentsOutput,
         validator: ajv.compile<ifaces.MomentsOutput>(JSON.parse('{"title": "MomentsOutput", "type": "object", "properties": {"data": {"type": "array", "items": {"$ref": "#/definitions/MomentInfo"}}, "total": {"type": "integer"}, "page": {"type": "integer"}}, "required": ["data", "total", "page"], "definitions": {"MomentInfo": {"title": "MomentInfo", "type": "object", "properties": {"id": {"type": "string"}, "user_address": {"type": "string"}, "timestamp": {"type": "integer"}, "frame": {"type": "integer"}, "index": {"type": "integer"}, "shares": {"type": "integer"}, "value": {"type": "integer"}}, "required": ["id", "user_address", "timestamp", "frame", "index", "shares"]}}}'))
+    },
+    'MomentValues': {
+        ioType:IOType.report,
+        abiTypes:[],
+        params:['total_moments', 'total_shares', 'buy_base_value', 'sell_base_value', 'buy_fee', 'sell_fee', 'shares_to_buy', 'share_value_after_buy', 'share_value_after_sell', 'buy_in_fee', 'collectors_pool_fee', 'developer_fee', 'player_fee'],
+        decoder: decodeToMomentValues,
+        validator: ajv.compile<ifaces.MomentValues>(JSON.parse('{"title": "MomentValues", "type": "object", "properties": {"total_moments": {"type": "integer"}, "total_shares": {"type": "integer"}, "buy_base_value": {"type": "integer"}, "sell_base_value": {"type": "integer"}, "buy_fee": {"type": "integer"}, "sell_fee": {"type": "integer"}, "shares_to_buy": {"type": "integer"}, "share_value_after_buy": {"type": "integer"}, "share_value_after_sell": {"type": "integer"}, "buy_in_fee": {"type": "integer"}, "collectors_pool_fee": {"type": "integer"}, "developer_fee": {"type": "integer"}, "player_fee": {"type": "integer"}}, "required": ["total_moments", "total_shares", "buy_base_value", "sell_base_value", "buy_fee", "sell_fee", "shares_to_buy", "share_value_after_buy", "share_value_after_sell", "buy_in_fee", "collectors_pool_fee", "developer_fee", "player_fee"]}'))
     },
     'GameplayInfo': {
         ioType:IOType.report,

@@ -8,6 +8,7 @@ from cartesi.abi import String, UInt
 from cartesapp.storage import helpers
 from cartesapp.input import  query
 from cartesapp.output import add_output, output
+from cartesapp.utils import hex2562int
 
 from .achievement import UserAchievementInfo
 from .moment import MomentInfo
@@ -89,7 +90,11 @@ def gameplays(payload: GameplaysPayload) -> bool:
     else:
         gameplays = gameplays_query.fetch()
     
-    dict_list_result = [r.to_dict() for r in gameplays]
+    dict_list_result = []
+    for gameplay in gameplays:
+        gameplay_dict = gameplay.to_dict()
+        gameplay_dict['share_value'] = hex2562int(gameplay.share_value)
+        dict_list_result.append(gameplay_dict)
 
     LOGGER.info(f"Returning {len(dict_list_result)} of {total} Gameplays")
     
@@ -117,6 +122,7 @@ def gameplay_info(payload: GameplayPayload) -> bool:
             user_achievements.append(user_achievement_dict)
 
         gameplay_dict['achievements'] = user_achievements
+        gameplay_dict['share_value'] = hex2562int(gameplay.share_value)
 
         moments = []
         for moment in gameplay.moments:

@@ -10,13 +10,14 @@ from cartesapp.storage import helpers
 from cartesapp.context import get_metadata
 from cartesapp.input import mutation, query
 from cartesapp.output import add_output, event, emit_event, output
-from cartesapp.utils import str2bytes, hex2bytes, uint2hex256, hex2562uint
+from cartesapp.utils import str2bytes, hex2bytes, hex2562uint, uint2hex256
 from cartesapp.wallet import dapp_wallet
 
 from app.common import get_cid
 from app.riv import replay_log
+from app.cartridge import Cartridge
 
-from .common import ACCEPTED_ERC20_ADDRESS, Gameplay, UserAchievement, Moment, return_error, CartridgeMomentPrice
+from .common import AppSetings, Gameplay, UserAchievement, Moment, return_error, CartridgeMomentPrice
 from .riv import replay_screenshot
 
 LOGGER = logging.getLogger(__name__)
@@ -49,7 +50,7 @@ class MomentsPayload(BaseModel):
     page_size:      Optional[int]
 
 class CollectValuePayload(BaseModel):
-    id: str
+    id: int
 
 # Outputs
 
@@ -79,6 +80,25 @@ class MomentsOutput(BaseModel):
     total:  UInt
     page:   UInt
 
+@output()
+class MomentValues(BaseModel):
+    total_moments:          int
+    total_shares:           int
+    buy_base_value:         int
+    sell_base_value:        int
+    buy_fee:                int
+    sell_fee:               int
+    buy_fee:                int
+    buy_fee:                int
+    buy_fee:                int
+    shares_to_buy:          int
+    share_value_after_buy:  int
+    share_value_after_sell: int
+    buy_in_fee:             int
+    collectors_pool_fee:    int
+    developer_fee:          int
+    player_fee:             int
+
 
 ###
 # Mutations
@@ -101,22 +121,29 @@ def collect_moment(payload: CollectMomentPayload) -> bool:
         gameplay.in_card_hash != sha256(payload.in_card).hexdigest():
         return return_error(f"Args and incard don't match to original gameplay",LOGGER)
 
-    # expression evaluation
-    total_moments = helpers.count(1 for r in Moment if r.gameplay == gameplay)
-    # moment_price = helpers.select(r for r in CartridgeMomentPrice if r.cartridge_id == gameplay.cartridge_id).first()
-    # if moment_price is None: return return_error(f"Moment price does not exist",LOGGER)
-    # parser = Parser()
-    # evaluation = moment_price.evaluation.copy()
-    # evaluation['moments'] = total_moments
+    cartridge = helpers.select(r for r in Cartridge if r.id == gameplay.cartridge_id).first()
+    if cartridge is None: return return_error(f"Cartridge does not exist",LOGGER)
     
-    # evaluated_expression = parser.parse(moment_price.model.expression).evaluate(evaluation)
-
-    # collect_value = evaluated_expression + _get_fee_value(moment_price)
-
-    # curr_user_balance = _get_erc20_balance(user_address,ACCEPTED_ERC20_ADDRESS)
+    # calculate number of shares, new value, reward
+    moment_values = _get_current_values(gameplay)
+    total_moments = moment_values.total_moments
     
-    # if curr_user_balance < collect_value:
-    #     return return_error(f"Not enough funds",LOGGER)
+    collect_value = moment_values.buy_base_value + moment_values.buy_fee
+
+    curr_user_balance = _get_erc20_balance(user_address,AppSetings.ACCEPTED_ERC20_ADDRESS)
+    
+    if curr_user_balance < collect_value:
+        return return_error(f"Not enough funds",LOGGER)
+
+    # distribute fees
+    treasury_fee = (moment_values.buy_fee 
+                    - moment_values.developer_fee - moment_values.player_fee 
+                    - moment_values.collectors_pool_fee - moment_values.buy_in_fee)
+    dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,user_address,AppSetings.TREASURY_ADDRESS,treasury_fee)
+    dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,user_address,cartridge.user_address,moment_values.developer_fee)
+    dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,user_address,gameplay.user_address,moment_values.player_fee)
+    dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,user_address,AppSetings.PROTOCOL_ADDRESS,
+                               moment_values.buy_base_value + moment_values.collectors_pool_fee + moment_values.buy_in_fee)
 
     user_achievement = None
     # get frame of moment
@@ -140,11 +167,7 @@ def collect_moment(payload: CollectMomentPayload) -> bool:
 
     index = total_moments + 1
 
-    # calculate number of shares, new value, reward
-    # new_value,collector_shares = _get_updated_share(moment_price, gameplay.share_value, gameplay.total_shares, evaluated_expression)
-    collector_shares = 0
-
-    # TODO: distribute fees
+    collector_shares = moment_values.shares_to_buy
 
     # create moment
     m = Moment(
@@ -157,8 +180,8 @@ def collect_moment(payload: CollectMomentPayload) -> bool:
         user_achievement = user_achievement
     )
 
-    # gameplay.share_value = new_value
-    # gameplay.total_shares += collector_shares
+    gameplay.share_value = uint2hex256(moment_values.share_value_after_buy)
+    gameplay.total_shares += collector_shares
 
     cm = CollectedMoment(
         cartridge_id    = hex2bytes(gameplay.cartridge_id),
@@ -180,22 +203,44 @@ def collect_moment(payload: CollectMomentPayload) -> bool:
     return True
 
 
-@mutation(module_name='app') # trap app replay 
+@mutation()
 def release_moment(payload: ReleaseMomentPayload) -> bool:
     
     metadata = get_metadata()
     user_address = metadata.msg_sender.lower()
 
     # check if gameplay exists
-    moment = helpers.select(r for r in Moment if r.id == payload.id).first()
+    moment = helpers.select(r for r in Moment if r.id == payload.id and r.user_address == user_address).first()
     if moment is None: return return_error(f"Moment does not exist",LOGGER)
     
-    # TODO: calculate number of shares, new price, reward
-    # TODO: distribute fees
+    gameplay = moment.gameplay
+
+    cartridge = helpers.select(r for r in Cartridge if r.id == gameplay.cartridge_id).first()
+    if cartridge is None: return return_error(f"Cartridge does not exist",LOGGER)
+
+    # calculate number of shares, new value, reward
+    moment_values = _get_current_values(gameplay,moment)
+    
+    if moment_values.sell_base_value < moment_values.sell_fee:
+        return return_error(f"Not enough funds",LOGGER)
+
+    # distribute fees
+    treasury_fee = (moment_values.sell_fee
+                    - moment_values.developer_fee - moment_values.player_fee 
+                    - moment_values.collectors_pool_fee)
+    dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,AppSetings.PROTOCOL_ADDRESS,AppSetings.TREASURY_ADDRESS,treasury_fee)
+    dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,AppSetings.PROTOCOL_ADDRESS,cartridge.user_address,moment_values.developer_fee)
+    dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,AppSetings.PROTOCOL_ADDRESS,gameplay.user_address,moment_values.player_fee )
+    dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,AppSetings.PROTOCOL_ADDRESS,user_address,
+                               moment_values.sell_base_value - moment_values.sell_fee)
+
+    gameplay.share_value = uint2hex256(moment_values.share_value_after_buy)
+    gameplay.total_shares -= moment.shares
 
     moment.shares = 0
 
     return True
+
 
 ###
 # Queries
@@ -205,8 +250,12 @@ def release_moment(payload: ReleaseMomentPayload) -> bool:
 def moments(payload: MomentsPayload) -> bool:
     moments_query = Moment.select()
 
-    if payload.cartridge_id is not None:
-        moments_query = moments_query.filter(lambda r: payload.cartridge_id == r.cartridge)
+    if payload.gameplay_id is not None:
+        moments_query = moments_query.filter(lambda r: payload.gameplay_id == r.gameplay)
+
+    elif payload.cartridge_id is not None:
+        gameplays_query = Gameplay.select(lambda r: payload.cartridge_id == r.cartridge_id)
+        moments_query = moments_query.filter(lambda r: r.gameplay in gameplays_query)
 
     if payload.user_address is not None:
         moments_query = moments_query.filter(lambda r: payload.user_address.lower() == r.user_address)
@@ -232,17 +281,20 @@ def moments(payload: MomentsPayload) -> bool:
     else:
         moments = moments_query.fetch()
     
-    gameplay_expression_value = {}
-    gameplay_share_value = {}
+    gameplay_moment_value = {}
     dict_list_result = []
     for moment in moments:
-        if gameplay_share_value.get(moment.gameplay.id) is None:
-            gameplay_share_value[moment.gameplay.id] = moment.gameplay.share_value
         moment_dict = moment.to_dict()
 
-        # TODO: add expression value in sell price
+        # add expression value in sell price
+        if gameplay_moment_value.get(moment.gameplay.id) is None:
+            moment_values = _get_current_values(moment.gameplay)
+            gameplay_moment_value[moment.gameplay.id] = moment_values
 
-        moment_dict['value'] = gameplay_share_value[moment.gameplay.id] * moment.shares
+        moment_values = gameplay_moment_value[moment.gameplay.id]
+        moment_dict['value'] = (moment_values.sell_base_value + 
+                                hex2562uint(moment.gameplay.share_value) * moment.shares - 
+                                moment_values.sell_fee)
 
         dict_list_result.append(moment_dict)
 
@@ -260,73 +312,86 @@ def collect_value(payload: CollectValuePayload) -> bool:
     moment = helpers.select(r for r in Moment if r.id == payload.id).first()
     if moment is None: return return_error(f"Moment does not exist",LOGGER)
 
-    # expression evaluation
-    total_moments = helpers.count(1 for r in Moment if r.gameplay == moment.gameplay)
-    if total_moments == 0:
-        add_output(0)
-        return True
-
-    moment_price = helpers.select(r for r in CartridgeMomentPrice if r.cartridge_id == moment.gameplay.cartridge_id).first()
-    if moment_price is None: return return_error(f"Moment price does not exist",LOGGER)
-
-    parser = Parser()
-    evaluation = moment_price.evaluation.copy()
-    evaluation['moments'] = total_moments
-    
-    evaluated_expression = parser.parse(moment_price.model.expression).evaluate(evaluation)
-
-    add_output(evaluated_expression)
+    add_output(_get_current_values(moment.gameplay, moment))
 
     return True
 
-# def _get_collect_value(moment_price: CartridgeMomentPrice, total_moments: int) -> int:
-#     # TODO: allow proportional fee
-#     parser = Parser()
-#     evaluation = moment_price.evaluation.copy()
-#     evaluation['moments'] = total_moments
+
+###
+# Helpers
+
+def _get_current_values(gameplay: Gameplay, moment: Moment | None = None) -> MomentValues:
+    if gameplay is None: raise Exception("No gameplay provided")
+
+    total_moments, total_shares = helpers.select((helpers.count(1),helpers.sum(r.shares)) for r in Moment if r.gameplay == gameplay).first()
+    moment_price = helpers.select(r for r in CartridgeMomentPrice if r.cartridge_id == gameplay.cartridge_id).first()
+
+    parser = Parser()
+    buy_evaluation = moment_price.evaluation.copy()
+    buy_evaluation['moments'] = total_moments
     
-#     evaluated_expression = parser.parse(moment_price.model.expression).evaluate(evaluation)
-
-#     return evaluated_expression + moment_price.fee_value
-
-# def _get_erc20_balance(wallet_addr: str, contract_addr: str) -> int:
-#     entry = helpers.select(e for e in dapp_wallet.Erc20 if e.address == contract_addr.lower() and e.wallet.owner == wallet_addr.lower()).first()
-
-#     if entry is None:
-#         return 0
-
-#     return hex2562uint(entry.amount)
-
-# def _get_updated_share(moment_price: CartridgeMomentPrice, share_value: int, total_shares: float, total_moments: int) -> Union[int,float]:
-#     # TODO: allow proportional fee
-
-#     new_share_value = share_value
-#     collector_shares = 0
-#     # Checking if it's the first share
-#     if total_shares == 0:
-#         # It is
-#         # Creating the first share and attributing it to the user
-#         collector_shares = moment_price.collectors_share + moment_price.collectors_pool_share
-#         # Share value is all the collectors cut plus the share purchase for the first one to join
-#         new_share_value = (moment_price.fee_value * (moment_price.collectors_cut + moment_price.share_purchase))//10_000
+    sell_evaluation = moment_price.evaluation.copy()
+    sell_evaluation['moments'] = total_moments - 1
     
-#     else:
-#         #it isn't
-#         #Calculate share purchase cut
-#         collector_shares = total_shares / moment_price.collectors_share + moment_price.collectors_pool_share
-    
-#     return new_share_value,collector_shares
+    buy_base_value = parser.parse(moment_price.model.expression).evaluate(buy_evaluation)
+    sell_base_value = 0 if total_moments == 0 else parser.parse(moment_price.model.expression).evaluate(sell_evaluation)
 
-# # class CartridgeMomentPrice(Entity):
-# #     id                      = helpers.PrimaryKey(int, auto=True)
-# #     cartridge_id            = helpers.Required(str, 64, index=True)
-# #     evaluation              = helpers.Optional(helpers.Json) 
-# #     fee_value               = helpers.Required(str, 66) # in hex 
-# #     developer_cut           = helpers.Required(int) # sum up to MAX_FEE_SHARES - MIN_RIVES_TREASURY_SHARES
-# #     player_cut              = helpers.Required(int) # sum up to MAX_FEE_SHARES - MIN_RIVES_TREASURY_SHARES
-# #     collectors_cut          = helpers.Required(int) # sum up to MAX_FEE_SHARES - MIN_RIVES_TREASURY_SHARES
-# #     share_purchase          = helpers.Required(int) # sum up to MAX_FEE_SHARES - MIN_RIVES_TREASURY_SHARES
-# #     model                   = helpers.Required(MomentPriceModel, index=True)
-# def _get_fee_value(moment_price: CartridgeMomentPrice, current_expression_value: int) -> int:
-#     # TODO: allow proportional fee
-#     return moment_price.fee_value
+    # TODO: allow proportional fee
+    buy_fee = hex2562uint(moment_price.fee_value)
+    sell_fee = hex2562uint(moment_price.fee_value) - moment_price.share_purchase
+
+    developer_fee = ((buy_fee * moment_price.developer_cut)//10_000)
+    player_fee = ((buy_fee * moment_price.player_cut)//10_000)
+    buy_in_fee = ((buy_fee * moment_price.share_purchase)//10_000)
+    collectors_pool_fee = ((buy_fee * moment_price.collectors_cut)//10_000)
+
+    new_share_value = hex2562uint(gameplay.share_value)
+    collector_shares = 0
+    share_value_after_sell = 0
+    # Checking if it's the first share
+    if total_shares == 0:
+        # It is
+        # Creating the first share and attributing it to the user
+        collector_shares = AppSetings.INITIAL_SHARE_OFFER
+        # Share value is all the collectors cut plus the share purchase for the first one to join
+        new_share_value = ((buy_fee * (moment_price.collectors_cut + moment_price.share_purchase))//10_000)//AppSetings.INITIAL_SHARE_OFFER
+    
+    else:
+        # it isn't
+        # Calculate share purchase cut
+        cur_share_price = hex2562uint(gameplay.share_value)
+        collector_shares = buy_in_fee // cur_share_price
+        new_share_value = ((total_shares + collector_shares)*cur_share_price + collectors_pool_fee) // (total_shares + collector_shares)
+
+        payed_buy_in_price = collector_shares*cur_share_price
+        if payed_buy_in_price != buy_in_fee:
+            LOGGER.warning(f"Buy in price payed more {buy_in_fee - payed_buy_in_price} tokens due to int approximations (see to the protocol)")
+    
+        if moment is not None:
+            share_value_after_sell = ((total_shares - moment.shares)*cur_share_price + collectors_pool_fee) // total_shares
+
+    current_values = MomentValues(
+        total_moments = total_moments,
+        total_shares = total_shares,
+        buy_base_value = buy_base_value,
+        sell_base_value = sell_base_value,
+        buy_fee = buy_fee,
+        buy_in_fee = buy_in_fee,
+        collectors_pool_fee = collectors_pool_fee,
+        developer_fee = developer_fee,
+        player_fee = player_fee,
+        sell_fee = sell_fee,
+        shares_to_buy = collector_shares,
+        share_value_after_buy = new_share_value,
+        share_value_after_sell = share_value_after_sell
+    )
+
+    return current_values
+
+def _get_erc20_balance(wallet_addr: str, contract_addr: str) -> int:
+    entry = helpers.select(e for e in dapp_wallet.Erc20 if e.address == contract_addr.lower() and e.wallet.owner == wallet_addr.lower()).first()
+
+    if entry is None:
+        return 0
+
+    return hex2562uint(entry.amount)

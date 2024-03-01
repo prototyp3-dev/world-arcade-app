@@ -52,7 +52,11 @@ export default function CartridgeAchievements({cartridge_id}:{cartridge_id?:stri
                     </div>
                 :
                     achievements.map((achievement, index) => {
-                        const obtainedPercentage = (achievement.total_players_achieved / achievement.total_cartridge_players)*100;
+                        let obtainedPercentage:number = 0;
+                        if (achievement.total_cartridge_players !== 0 ) {
+                            obtainedPercentage = (achievement.total_players_achieved / achievement.total_cartridge_players)*100;
+                        }
+
                         return (
                             <Link key={achievement.id} className={`flex flex-col items-center p-4 text-center hover-color ${achievement.player_achieved? "": "opacity-50" }`} href={`/achievement/${achievement.id}`}>
                                 <Image className="rounded-full border-4"

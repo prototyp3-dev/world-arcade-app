@@ -43,11 +43,10 @@ export default function Achievement({achievement}:{achievement:AchievementInfo})
     }
 
     async function playReplay(gameplayId:string, achievementId:number, achievementFrame:number) {
-        const snakeCartridgeId = "b8544d95861d5d47094e743fc291e7bc2c30ca662ff7b1daf91c66157f6165ce";
         let data;
         if (!cartridgeData) {
             // change to achievement.cartridge_id later
-            data = await getCartridgeData(snakeCartridgeId);
+            data = await getCartridgeData(achievement.cartridge_id);
             setCartridgeData(data);
         }
 
@@ -78,12 +77,11 @@ export default function Achievement({achievement}:{achievement:AchievementInfo})
                 </div>
             </div>
 
-            <div className="w-80 bg-gray-200 rounded-full h-4 my-4">
+            <div className="relative w-80 bg-gray-400 rounded-full h-4 my-4">
                 <div className="element-inside h-4 rounded-full flex justify-center items-center" style={{width: `${obtainedPercentage}%`}}>
-                    {`${obtainedPercentage}%`}
+                    <span className="absolute inset-0 flex items-center justify-center text-sm font-medium text-white">{`${obtainedPercentage}%`}</span>
                 </div>
             </div>
-
 
             <div className="w-full flex justify-center">
                 <table className="w-max text-center">

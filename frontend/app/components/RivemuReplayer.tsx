@@ -161,8 +161,8 @@ export default function RivemuReplayer({cartridgeData, gameplay}:{cartridgeData:
     }
     
     return (
-        <div hidden={isHidden}>
-            <section className='gameplay-screen fixed z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
+        <div hidden={isHidden} className="z-50 absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <section className='gameplay-screen'>
                 <div className='relative bg-gray-500 p-2 text-center'>
                     <span>Score: {overallScore} | Current Frame: {currFrame} {gameplay.achievementFrame? `| Achievement Frame: ${gameplay.achievementFrame}`:""}</span>
                     <button className="element text-white absolute top-1 end-2.5 hover-color"
@@ -179,8 +179,6 @@ export default function RivemuReplayer({cartridgeData, gameplay}:{cartridgeData:
                         <canvas
                             className='max-h-full max-w-full'
                             id="canvas"
-                            height={768}
-                            width={768}
                             onContextMenu={(e) => e.preventDefault()}
                             tabIndex={-1}
                             style={{

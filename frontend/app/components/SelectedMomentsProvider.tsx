@@ -17,17 +17,21 @@ const getCartridge = cache(async (id:string) => {
 })
 
 const getCartridgeId = cache(async (gameplayId:string) => {
-    const gameplay:GameplayInfo = await gameplayInfo({id: gameplayId}, {decode:true, cartesiNodeUrl: envClient.CARTESI_NODE_URL, cache:"force-cache"});
+    const gameplay:GameplayInfo = await gameplayInfo({id: gameplayId}, {decode:true, cartesiNodeUrl: envClient.CARTESI_NODE_URL});
     
     return gameplay;
 })
 
 
+export interface CollectMomentExtended extends CollectMomentPayload {
+    cartridge_id:string
+}
 export const SelectedMomentsContext = createContext<{
-    selectedMoments: Array<SelectedMoment>, pickMoment(moment:CollectMomentPayload):void, collectSelectedMoment(momentIndex:number):void
-}>({selectedMoments: [], pickMoment: (moment:CollectMomentPayload) => null, collectSelectedMoment: (momentIndex:number) => null});
+    selectedMoments: Array<SelectedMoment>, pickMoment(moment:CollectMomentExtended):void, collectSelectedMoment(momentIndex:number):void
+}>({selectedMoments: [], pickMoment: (moment:CollectMomentExtended) => null, collectSelectedMoment: (momentIndex:number) => null});
 
-export interface SelectedMoment extends CollectMomentPayload {
+
+export interface SelectedMoment extends CollectMomentExtended {
     gameName:string,
     cover:string
 }
@@ -36,18 +40,22 @@ export interface SelectedMoment extends CollectMomentPayload {
 export function SelectedMomentsProvider({ children }:{ children: React.ReactNode }) {
     const [selectedMoments, setSelectedMoments] = useState<Array<SelectedMoment>>([]);
     const [{ wallet }] = useConnectWallet();
+    const [cartridgesName,setCartridgesName] = useState(new Map<string,string>())
 
-    const pickMoment = async (moment:CollectMomentPayload) => {
+    const pickMoment = async (moment:CollectMomentExtended) => {
         const canvas = document.getElementById("canvas");
         let coverImage = "";
         if (canvas) {
             coverImage = (canvas as HTMLCanvasElement).toDataURL('image/jpeg');
         }
 
-        const gameplay = await getCartridgeId(moment.gameplay_id);
-        const cartridge = await getCartridge(gameplay.cartridge_id);
+        if (!cartridgesName.has(moment.cartridge_id)) {
+            const cartridge = await getCartridge(moment.cartridge_id);
+            cartridgesName.set(moment.cartridge_id, cartridge.name);
+            setCartridgesName(cartridgesName);
+        }
 
-        setSelectedMoments([...selectedMoments, {...moment, cover:coverImage, gameName: cartridge.name}]);
+        setSelectedMoments([...selectedMoments, {...moment, cover:coverImage, gameName: cartridgesName.get(moment.cartridge_id)||""}]);
     }
 
     const collectSelectedMoment = async (momentIndex:number) => {

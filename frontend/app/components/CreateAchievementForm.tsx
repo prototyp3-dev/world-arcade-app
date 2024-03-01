@@ -38,7 +38,7 @@ async function handle_file_input(e:React.ChangeEvent<HTMLInputElement>, callback
 
 
 const getCartridges = cache(async () => {
-	const cartridges:Array<CartridgeInfo> = (await cartridgerequest({},{decode:true, cartesiNodeUrl: envClient.CARTESI_NODE_URL,cache:"force-cache"})).data;
+	const cartridges:Array<CartridgeInfo> = (await cartridgerequest({},{decode:true, cartesiNodeUrl: envClient.CARTESI_NODE_URL})).data;
 
     return cartridges;
 })

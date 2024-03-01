@@ -82,6 +82,7 @@ COPY misc/2048.sqfs misc/2048.sqfs
 COPY misc/freedoom.sqfs misc/freedoom.sqfs
 COPY misc/antcopter.sqfs misc/antcopter.sqfs
 COPY misc/monky.sqfs misc/monky.sqfs
+COPY misc/breakout.sqfs misc/breakout.sqfs
 COPY misc/test.rivlog misc/test.rivlog
 
 COPY misc/font misc/font

@@ -78,6 +78,11 @@ import {
     CONVENTIONAL_TYPES, decodeToConventionalTypes
 } from "../cartesapp/utils"
 
+import { 
+    genericGetOutputs, decodeAdvance
+} from "../cartesapp/lib"
+
+import * as indexerIfaces from "../indexer/ifaces"
 import * as ifaces from "./ifaces";
 
 
@@ -104,7 +109,12 @@ export async function etherWithdraw(
     options?:MutationOptions
 ):Promise<AdvanceOutput|ContractReceipt|any[]> {
     const data: WithdrawEtherPayload = new WithdrawEtherPayload(inputData);
-    return genericAdvanceInput<ifaces.WithdrawEtherPayload>(client,dappAddress,'0x8bdcaa5c',data, options);
+    if (options?.decode) { options.sync = true; }
+    const result = await genericAdvanceInput<ifaces.WithdrawEtherPayload>(client,dappAddress,'0x8bdcaa5c',data, options)
+    if (options?.decode) {
+        return decodeAdvance(result as AdvanceOutput,decodeToModel,options);
+    }
+    return result;
 }
 
 export async function etherTransfer(
@@ -114,7 +124,12 @@ export async function etherTransfer(
     options?:MutationOptions
 ):Promise<AdvanceOutput|ContractReceipt|any[]> {
     const data: TransferEtherPayload = new TransferEtherPayload(inputData);
-    return genericAdvanceInput<ifaces.TransferEtherPayload>(client,dappAddress,'0x05c0572a',data, options);
+    if (options?.decode) { options.sync = true; }
+    const result = await genericAdvanceInput<ifaces.TransferEtherPayload>(client,dappAddress,'0x05c0572a',data, options)
+    if (options?.decode) {
+        return decodeAdvance(result as AdvanceOutput,decodeToModel,options);
+    }
+    return result;
 }
 
 export async function erc20Withdraw(
@@ -124,7 +139,12 @@ export async function erc20Withdraw(
     options?:MutationOptions
 ):Promise<AdvanceOutput|ContractReceipt|any[]> {
     const data: WithdrawErc20Payload = new WithdrawErc20Payload(inputData);
-    return genericAdvanceInput<ifaces.WithdrawErc20Payload>(client,dappAddress,'0xe8098289',data, options);
+    if (options?.decode) { options.sync = true; }
+    const result = await genericAdvanceInput<ifaces.WithdrawErc20Payload>(client,dappAddress,'0xe8098289',data, options)
+    if (options?.decode) {
+        return decodeAdvance(result as AdvanceOutput,decodeToModel,options);
+    }
+    return result;
 }
 
 export async function erc20Transfer(
@@ -134,7 +154,12 @@ export async function erc20Transfer(
     options?:MutationOptions
 ):Promise<AdvanceOutput|ContractReceipt|any[]> {
     const data: TransferErc20Payload = new TransferErc20Payload(inputData);
-    return genericAdvanceInput<ifaces.TransferErc20Payload>(client,dappAddress,'0xb9df05d9',data, options);
+    if (options?.decode) { options.sync = true; }
+    const result = await genericAdvanceInput<ifaces.TransferErc20Payload>(client,dappAddress,'0xb9df05d9',data, options)
+    if (options?.decode) {
+        return decodeAdvance(result as AdvanceOutput,decodeToModel,options);
+    }
+    return result;
 }
 
 export async function erc721Withdraw(
@@ -144,7 +169,12 @@ export async function erc721Withdraw(
     options?:MutationOptions
 ):Promise<AdvanceOutput|ContractReceipt|any[]> {
     const data: WithdrawErc721Payload = new WithdrawErc721Payload(inputData);
-    return genericAdvanceInput<ifaces.WithdrawErc721Payload>(client,dappAddress,'0x1bb27d41',data, options);
+    if (options?.decode) { options.sync = true; }
+    const result = await genericAdvanceInput<ifaces.WithdrawErc721Payload>(client,dappAddress,'0x1bb27d41',data, options)
+    if (options?.decode) {
+        return decodeAdvance(result as AdvanceOutput,decodeToModel,options);
+    }
+    return result;
 }
 
 export async function erc721Transfer(
@@ -154,7 +184,12 @@ export async function erc721Transfer(
     options?:MutationOptions
 ):Promise<AdvanceOutput|ContractReceipt|any[]> {
     const data: TransferErc721Payload = new TransferErc721Payload(inputData);
-    return genericAdvanceInput<ifaces.TransferErc721Payload>(client,dappAddress,'0xdc9eac28',data, options);
+    if (options?.decode) { options.sync = true; }
+    const result = await genericAdvanceInput<ifaces.TransferErc721Payload>(client,dappAddress,'0xdc9eac28',data, options)
+    if (options?.decode) {
+        return decodeAdvance(result as AdvanceOutput,decodeToModel,options);
+    }
+    return result;
 }
 
 
@@ -174,6 +209,16 @@ export async function balance(
 }
 
 
+/*
+ * Indexer Query
+ */
+
+export async function getOutputs(
+    inputData: indexerIfaces.IndexerPayload,
+    options?:InspectOptions
+):Promise<any[]> {
+    return genericGetOutputs(inputData,decodeToModel,options);
+}
 
 
 /**
@@ -198,18 +243,6 @@ export function exportToModel(data: any, modelName: string): string {
     return exporter(data);
 }
 
-export class WithdrawEtherPayload extends IOData<ifaces.WithdrawEtherPayload> { constructor(data: ifaces.WithdrawEtherPayload, validate: boolean = true) { super(models['WithdrawEtherPayload'],data,validate); } }
-export function exportToWithdrawEtherPayload(data: ifaces.WithdrawEtherPayload): string {
-    const dataToExport: WithdrawEtherPayload = new WithdrawEtherPayload(data);
-    return dataToExport.export();
-}
-
-export class WithdrawErc20Payload extends IOData<ifaces.WithdrawErc20Payload> { constructor(data: ifaces.WithdrawErc20Payload, validate: boolean = true) { super(models['WithdrawErc20Payload'],data,validate); } }
-export function exportToWithdrawErc20Payload(data: ifaces.WithdrawErc20Payload): string {
-    const dataToExport: WithdrawErc20Payload = new WithdrawErc20Payload(data);
-    return dataToExport.export();
-}
-
 export class TransferEtherPayload extends IOData<ifaces.TransferEtherPayload> { constructor(data: ifaces.TransferEtherPayload, validate: boolean = true) { super(models['TransferEtherPayload'],data,validate); } }
 export function exportToTransferEtherPayload(data: ifaces.TransferEtherPayload): string {
     const dataToExport: TransferEtherPayload = new TransferEtherPayload(data);
@@ -228,9 +261,21 @@ export function exportToTransferErc721Payload(data: ifaces.TransferErc721Payload
     return dataToExport.export();
 }
 
+export class WithdrawErc20Payload extends IOData<ifaces.WithdrawErc20Payload> { constructor(data: ifaces.WithdrawErc20Payload, validate: boolean = true) { super(models['WithdrawErc20Payload'],data,validate); } }
+export function exportToWithdrawErc20Payload(data: ifaces.WithdrawErc20Payload): string {
+    const dataToExport: WithdrawErc20Payload = new WithdrawErc20Payload(data);
+    return dataToExport.export();
+}
+
 export class WithdrawErc721Payload extends IOData<ifaces.WithdrawErc721Payload> { constructor(data: ifaces.WithdrawErc721Payload, validate: boolean = true) { super(models['WithdrawErc721Payload'],data,validate); } }
 export function exportToWithdrawErc721Payload(data: ifaces.WithdrawErc721Payload): string {
     const dataToExport: WithdrawErc721Payload = new WithdrawErc721Payload(data);
+    return dataToExport.export();
+}
+
+export class WithdrawEtherPayload extends IOData<ifaces.WithdrawEtherPayload> { constructor(data: ifaces.WithdrawEtherPayload, validate: boolean = true) { super(models['WithdrawEtherPayload'],data,validate); } }
+export function exportToWithdrawEtherPayload(data: ifaces.WithdrawEtherPayload): string {
+    const dataToExport: WithdrawEtherPayload = new WithdrawEtherPayload(data);
     return dataToExport.export();
 }
 
@@ -281,20 +326,6 @@ export function decodeToWithdrawErc721(output: CartesiReport | CartesiNotice | C
  */
 
 export const models: Models = {
-    'WithdrawEtherPayload': {
-        ioType:IOType.mutationPayload,
-        abiTypes:['uint256', 'bytes'],
-        params:['amount', 'execLayerData'],
-        exporter: exportToWithdrawEtherPayload,
-        validator: ajv.compile<ifaces.WithdrawEtherPayload>(JSON.parse('{"title": "WithdrawEtherPayload", "type": "object", "properties": {"amount": {"type": "integer"}, "execLayerData": {"type": "string", "format": "binary"}}, "required": ["amount", "execLayerData"]}'))
-    },
-    'WithdrawErc20Payload': {
-        ioType:IOType.mutationPayload,
-        abiTypes:['address', 'uint256', 'bytes'],
-        params:['token', 'amount', 'execLayerData'],
-        exporter: exportToWithdrawErc20Payload,
-        validator: ajv.compile<ifaces.WithdrawErc20Payload>(JSON.parse('{"title": "WithdrawErc20Payload", "type": "object", "properties": {"token": {"type": "string"}, "amount": {"type": "integer"}, "execLayerData": {"type": "string", "format": "binary"}}, "required": ["token", "amount", "execLayerData"]}'))
-    },
     'TransferEtherPayload': {
         ioType:IOType.mutationPayload,
         abiTypes:['address', 'uint256', 'bytes'],
@@ -316,12 +347,26 @@ export const models: Models = {
         exporter: exportToTransferErc721Payload,
         validator: ajv.compile<ifaces.TransferErc721Payload>(JSON.parse('{"title": "TransferErc721Payload", "type": "object", "properties": {"token": {"type": "string"}, "receiver": {"type": "string"}, "id": {"type": "integer"}, "execLayerData": {"type": "string", "format": "binary"}}, "required": ["token", "receiver", "id", "execLayerData"]}'))
     },
+    'WithdrawErc20Payload': {
+        ioType:IOType.mutationPayload,
+        abiTypes:['address', 'uint256', 'bytes'],
+        params:['token', 'amount', 'execLayerData'],
+        exporter: exportToWithdrawErc20Payload,
+        validator: ajv.compile<ifaces.WithdrawErc20Payload>(JSON.parse('{"title": "WithdrawErc20Payload", "type": "object", "properties": {"token": {"type": "string"}, "amount": {"type": "integer"}, "execLayerData": {"type": "string", "format": "binary"}}, "required": ["token", "amount", "execLayerData"]}'))
+    },
     'WithdrawErc721Payload': {
         ioType:IOType.mutationPayload,
         abiTypes:['address', 'uint256', 'bytes'],
         params:['token', 'id', 'execLayerData'],
         exporter: exportToWithdrawErc721Payload,
         validator: ajv.compile<ifaces.WithdrawErc721Payload>(JSON.parse('{"title": "WithdrawErc721Payload", "type": "object", "properties": {"token": {"type": "string"}, "id": {"type": "integer"}, "execLayerData": {"type": "string", "format": "binary"}}, "required": ["token", "id", "execLayerData"]}'))
+    },
+    'WithdrawEtherPayload': {
+        ioType:IOType.mutationPayload,
+        abiTypes:['uint256', 'bytes'],
+        params:['amount', 'execLayerData'],
+        exporter: exportToWithdrawEtherPayload,
+        validator: ajv.compile<ifaces.WithdrawEtherPayload>(JSON.parse('{"title": "WithdrawEtherPayload", "type": "object", "properties": {"amount": {"type": "integer"}, "execLayerData": {"type": "string", "format": "binary"}}, "required": ["amount", "execLayerData"]}'))
     },
     'BalancePayload': {
         ioType:IOType.queryPayload,
@@ -339,24 +384,24 @@ export const models: Models = {
     },
     'EtherEvent': {
         ioType:IOType.notice,
-        abiTypes:['address', 'int256', 'uint256'],
-        params:['user', 'mod_amount', 'balance'],
+        abiTypes:['address', 'uint256', 'int256', 'uint256'],
+        params:['user', 'timestamp', 'mod_amount', 'balance'],
         decoder: decodeToEtherEvent,
-        validator: ajv.compile<ifaces.EtherEvent>(JSON.parse('{"title": "EtherEvent", "type": "object", "properties": {"user": {"type": "string"}, "mod_amount": {"type": "integer"}, "balance": {"type": "integer"}}, "required": ["user", "mod_amount", "balance"]}'.replaceAll('integer','string","format":"biginteger')))
+        validator: ajv.compile<ifaces.EtherEvent>(JSON.parse('{"title": "EtherEvent", "type": "object", "properties": {"user": {"type": "string"}, "timestamp": {"type": "integer"}, "mod_amount": {"type": "integer"}, "balance": {"type": "integer"}}, "required": ["user", "timestamp", "mod_amount", "balance"]}'.replaceAll('integer','string","format":"biginteger')))
     },
     'Erc20Event': {
         ioType:IOType.notice,
-        abiTypes:['address', 'address', 'int256', 'uint256'],
-        params:['user', 'address', 'mod_amount', 'balance'],
+        abiTypes:['address', 'uint256', 'address', 'int256', 'uint256'],
+        params:['user', 'timestamp', 'address', 'mod_amount', 'balance'],
         decoder: decodeToErc20Event,
-        validator: ajv.compile<ifaces.Erc20Event>(JSON.parse('{"title": "Erc20Event", "type": "object", "properties": {"user": {"type": "string"}, "address": {"type": "string"}, "mod_amount": {"type": "integer"}, "balance": {"type": "integer"}}, "required": ["user", "address", "mod_amount", "balance"]}'.replaceAll('integer','string","format":"biginteger')))
+        validator: ajv.compile<ifaces.Erc20Event>(JSON.parse('{"title": "Erc20Event", "type": "object", "properties": {"user": {"type": "string"}, "timestamp": {"type": "integer"}, "address": {"type": "string"}, "mod_amount": {"type": "integer"}, "balance": {"type": "integer"}}, "required": ["user", "timestamp", "address", "mod_amount", "balance"]}'.replaceAll('integer','string","format":"biginteger')))
     },
     'Erc721Event': {
         ioType:IOType.notice,
-        abiTypes:['address', 'address', 'int256', 'uint256[]'],
-        params:['user', 'address', 'mod_id', 'ids'],
+        abiTypes:['address', 'uint256', 'address', 'int256', 'uint256[]'],
+        params:['user', 'timestamp', 'address', 'mod_id', 'ids'],
         decoder: decodeToErc721Event,
-        validator: ajv.compile<ifaces.Erc721Event>(JSON.parse('{"title": "Erc721Event", "type": "object", "properties": {"user": {"type": "string"}, "address": {"type": "string"}, "mod_id": {"type": "integer"}, "ids": {"type": "array", "items": {"type": "integer"}}}, "required": ["user", "address", "mod_id", "ids"]}'.replaceAll('integer','string","format":"biginteger')))
+        validator: ajv.compile<ifaces.Erc721Event>(JSON.parse('{"title": "Erc721Event", "type": "object", "properties": {"user": {"type": "string"}, "timestamp": {"type": "integer"}, "address": {"type": "string"}, "mod_id": {"type": "integer"}, "ids": {"type": "array", "items": {"type": "integer"}}}, "required": ["user", "timestamp", "address", "mod_id", "ids"]}'.replaceAll('integer','string","format":"biginteger')))
     },
     'withdrawEther': {
         ioType:IOType.voucher,

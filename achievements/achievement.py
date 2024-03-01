@@ -266,6 +266,7 @@ def create_achievement(payload: CreateAchievementsPayload) -> bool:
 @query()
 def achievements(payload: AchievementsPayload) -> bool:
     achievements_query = Achievement.select()
+    print("============================== DEBUG ===============",achievements_query.count())
 
     if payload.cartridge_id is not None:
         achievements_query = achievements_query.filter(lambda r: payload.cartridge_id == r.cartridge_id)
@@ -383,6 +384,7 @@ def _evaluate_gameplay_achievements(cartridge_id, log, args, in_card, replay_out
     except Exception as e:
         raise Exception(f"Couldn't convert outhist to json: {e}")
 
+    # TODO: for app.replay endpoint don't allow blank outhash
     if replay_outcard_hash == b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00':
         replay_outcard_hash = outhash
 

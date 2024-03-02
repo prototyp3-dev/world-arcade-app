@@ -135,7 +135,7 @@ export default function DepositModal({option}:{option:MODAL_OPTIONS}) {
         setIsLoading(true);
         const signer = new ethers.providers.Web3Provider(wallet.provider, 'any').getSigner();
 
-        depositErc20(signer, envClient.DAPP_ADDR, envClient.ACCPTED_TOKEN,depositValue,
+        depositErc20(signer, envClient.DAPP_ADDR, envClient.ACCEPTED_TOKEN,depositValue,
             {sync:false, cartesiNodeUrl: envClient.CARTESI_NODE_URL,decimals:Number(envClient.ACCPTED_TOKEN_DECIMALS)}).then(
                 (res) => {
                     const receipt = res as ContractReceipt;

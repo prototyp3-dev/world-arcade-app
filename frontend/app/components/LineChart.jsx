@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { Chart } from "chart.js";
-import { BigNumber } from "ethers";
 import { envClient } from "../utils/clientEnv";
+import { ethers } from "ethers";
 
 
 
@@ -19,8 +19,7 @@ export default function LineChart({balances}) {
       const year = d.getFullYear();
 
       labels.push(`${month}/${day}/${year}`);
-
-      data.push(BigNumber.from(balances[i].balance)/(10**envClient.ACCEPTED_TOKEN_DECIMALS))
+      data.push(Number(ethers.utils.formatUnits(`${balances[i].balance}`, envClient.ACCPTED_TOKEN_DECIMALS)))
     }
 
     var myChart = new Chart(ctx, {

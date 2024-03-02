@@ -13,33 +13,9 @@ import AccountWalletOperations from './AccountWalletOperations';
 
 export default function Account({wallet}:{wallet:WalletState|null}) {
     const [currentBalance, setBalance] = useState(0);
-    const [depositValue, setDepositValue] = useState(0);
     const [reloadCount, setReloadCount] = useState(0);
 
     if (!wallet || wallet.accounts.length == 0) return <></>;
-
-    const depositTokens =() => {
-
-        if (!wallet) {
-            alert("Connect wallet first to deposit.");
-            return
-        }
-
-        const signer = new ethers.providers.Web3Provider(wallet.provider, 'any').getSigner();
-
-        depositErc20(signer, envClient.DAPP_ADDR, envClient.ACCPTED_TOKEN,depositValue,
-            {sync:false, cartesiNodeUrl: envClient.CARTESI_NODE_URL,decimals:Number(envClient.ACCPTED_TOKEN_DECIMALS)}).then(
-                (res) => {
-                    const receipt = res as ContractReceipt;
-                  
-                    if (receipt == undefined || receipt.events == undefined)
-                        throw new Error("Couldn't send transaction");
-
-        }).catch( (error) => {
-            alert(error);
-        });
-        
-    }
 
     const reloadBalance = () => {
         if (!wallet) {
@@ -68,31 +44,16 @@ export default function Account({wallet}:{wallet:WalletState|null}) {
     
     return (
         <div className="flex flex-col p-4">            
-            {/* <div className="flex items-center justify-end pb-2 pr-6">
+            <div className="flex items-center justify-end pb-2 pr-6">
                 <button
-                    className={`uppercase text-sm px-6 py-2 ml-1 hover:bg-transparent`}
+                    className={`uppercase text-sm px-6 py-2 ml-1 hover-color`}
                     type="button"
                     onClick={() => reloadBalance()}
                 ><ReplayIcon/>
                 </button>
             </div>
-            <fieldset className={`relative my-6 px-6 flex-auto h-full`}>
-                <div >
-                    <legend>
-                        Deposit Tokens
-                    </legend>
-                    <input className="text-black" type="number" value={depositValue} onChange={e => setDepositValue(Number(e.target.value))} />
-                </div>
-            </fieldset>
-            <div className="flex items-center justify-end pb-2 pr-6">
-                <button
-                    className={`uppercase text-sm px-6 py-2 ml-1 hover:bg-transparent`}
-                    type="button"
-                    onClick={() => depositTokens()}
-                    >Deposit
-                </button>
-            </div> */}
-            <span className="text-2xl mb-4">
+            
+            <span className="text-2xl">
                 Balance: {ethers.utils.formatUnits(`${currentBalance}`,envClient.ACCPTED_TOKEN_DECIMALS).toString()}
                 <span className='ms-2'>USDC</span>
             </span>

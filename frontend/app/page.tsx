@@ -5,7 +5,6 @@ import { cartridges as cartridgerequest } from "@/app/libs/app/lib";
 import { CartridgeInfo } from "./libs/app/ifaces";
 import { cache } from "react";
 import { envClient } from "./utils/clientEnv";
-import TokenSwap from "@/app/components/TokenSwap";
 
 const getCartridges = cache(async () => {
 	const cartridges:Array<CartridgeInfo> = (await cartridgerequest({},{decode:true, cartesiNodeUrl: envClient.CARTESI_NODE_URL,cache:"force-cache"})).data;
@@ -43,7 +42,6 @@ export default async function Home() {
                     }
                 </div>
             </section>
-            <TokenSwap />
         </main>
     );
 }

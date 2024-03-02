@@ -1,4 +1,4 @@
-import { str, envsafe, url } from 'envsafe';
+import { str, envsafe, url, num } from 'envsafe';
 
 
 export const envClient = envsafe({
@@ -14,7 +14,7 @@ export const envClient = envsafe({
     input: process.env.NEXT_PUBLIC_ACCPTED_TOKEN,
     desc: "Token used in application."
   }),
-  ACCPTED_TOKEN_DECIMALS: str({
+  ACCPTED_TOKEN_DECIMALS: num({
     input: process.env.NEXT_PUBLIC_ACCPTED_TOKEN_DECIMALS,
     desc: "Number of decimals of token."
   })

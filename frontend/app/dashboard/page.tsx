@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, cache } from 'react'
+import React from 'react'
 
 import { useConnectWallet } from "@web3-onboard/react";
 import { useRouter } from "next/navigation";
@@ -13,8 +13,8 @@ export default function DashboardPage() {
 
     // wallet not connected, push to homepage
     if (!wallet || wallet.accounts.length == 0) {
-        router.push("/");
-        return;
+        //router.push("/");
+        return <></>;
     }
     
     return (

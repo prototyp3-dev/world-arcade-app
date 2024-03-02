@@ -18,6 +18,7 @@
     "@web3-onboard/react": "^2.8.13",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
+    "chart.js": "^2.9.4",
     "envsafe": "^2.0.3",
     "ethers": "^5.7.2",
     "expr-eval": "^2.0.2",

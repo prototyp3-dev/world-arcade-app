@@ -67,10 +67,8 @@ export default function Account({wallet}:{wallet:WalletState|null}) {
     },[]);
     
     return (
-        <div className="grid grid-cols-2">
-            
-            <span className="text-2xl">Balance: {ethers.utils.formatUnits(`${currentBalance}`,envClient.ACCPTED_TOKEN_DECIMALS).toString()}</span>
-            <div className="flex items-center justify-end pb-2 pr-6">
+        <div className="flex flex-col p-4">            
+            {/* <div className="flex items-center justify-end pb-2 pr-6">
                 <button
                     className={`uppercase text-sm px-6 py-2 ml-1 hover:bg-transparent`}
                     type="button"
@@ -93,8 +91,12 @@ export default function Account({wallet}:{wallet:WalletState|null}) {
                     onClick={() => depositTokens()}
                     >Deposit
                 </button>
-            </div>
-            <AccountWalletOperations user_address={wallet.accounts[0].address} reload={reloadCount} />
+            </div> */}
+            <span className="text-2xl mb-4">
+                Balance: {ethers.utils.formatUnits(`${currentBalance}`,envClient.ACCPTED_TOKEN_DECIMALS).toString()}
+                <span className='ms-2'>USDC</span>
+            </span>
+            <AccountWalletOperations  user_address={wallet.accounts[0].address} reload={reloadCount} />
         </div>
     );
 }

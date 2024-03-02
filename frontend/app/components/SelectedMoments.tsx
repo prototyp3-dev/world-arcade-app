@@ -21,7 +21,7 @@ export default function SelectedMoments() {
 
     return(
         <>
-            <div className="expand-log-btn">
+            <div className="expand-log-btn text-white">
                 <button onClick={()=>setShowHistory(true)}>
                     <KeyboardArrowUpIcon/>
                     Picked Moments

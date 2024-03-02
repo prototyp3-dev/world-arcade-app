@@ -12,13 +12,13 @@ export interface _Master_ {
   TransferErc721Payload: TransferErc721Payload;
   WithdrawErc721Payload: WithdrawErc721Payload;
   WalletOutput: WalletOutput;
-  WithdrawErc20Payload: WithdrawErc20Payload;
   TransferErc20Payload: TransferErc20Payload;
   withdrawErc721: WithdrawErc721;
   TransferEtherPayload: TransferEtherPayload;
   Erc721Event: Erc721Event;
   WithdrawEtherPayload: WithdrawEtherPayload;
   withdrawErc20: WithdrawErc20;
+  WithdrawErc20Payload: WithdrawErc20Payload;
   Erc20Event: Erc20Event;
 }
 export interface WithdrawEther {
@@ -61,11 +61,6 @@ export interface WalletOutput {
     [k: string]: [number[], number[]];
   };
 }
-export interface WithdrawErc20Payload {
-  token: string;
-  amount: number;
-  execLayerData: string;
-}
 export interface TransferErc20Payload {
   token: string;
   receiver: string;
@@ -96,6 +91,11 @@ export interface WithdrawEtherPayload {
 export interface WithdrawErc20 {
   user: string;
   amount: number;
+}
+export interface WithdrawErc20Payload {
+  token: string;
+  amount: number;
+  execLayerData: string;
 }
 export interface Erc20Event {
   user: string;

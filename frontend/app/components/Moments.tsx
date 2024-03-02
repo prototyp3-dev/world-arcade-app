@@ -44,77 +44,76 @@ function byteToBase64(bytes: Uint8Array): string {
 }
 
 
+export interface MomentExtended extends MomentInfo {
+    game_name:string,
+    screenshot:string
+}
+
 export default function Moments({propos,releaseFunction}:{propos:MomentsPayload,releaseFunction(moment:MomentInfo):void}) {
-    const [cartridgesName,setCartridgesName] = useState(new Map<string,string>())
-    const [screenshots,setScreenshots] = useState(new Map<number,string>())
-    const [moments,setMoments] = useState<Array<MomentInfo>>([])
+    const [moments,setMoments] = useState<Array<MomentExtended>>([])
         
     useEffect(() => {
         momentsQuery(propos,{cartesiNodeUrl: envClient.CARTESI_NODE_URL, decode: true}).then(
             (output) => {
-                setMoments(output.data);
+
+                const cartridgeNamesRequests = new Array<string>();
+                const momentList = output.data as Array<MomentExtended>;
+                const promiseList = momentList.map((moment: MomentExtended) => {
+                    let doCartridgeReq = false;
+                    if (cartridgeNamesRequests.indexOf(moment.cartridge_id) == -1) {
+                        cartridgeNamesRequests.push(moment.cartridge_id);
+                        doCartridgeReq = true;
+                    }
+
+                    return Promise.all([
+                        Promise.resolve(moment),
+                        getOutputs(
+                        {
+                            tags: ['moment_screenshot',moment.cartridge_id,moment.user_address,moment.gameplay_id,`${moment.id}`],
+                            output_type: 'report'
+                        },
+                        {cartesiNodeUrl: envClient.CARTESI_NODE_URL}
+                    ),
+                    Promise.resolve(doCartridgeReq ? cartridgeInfo({id:moment.cartridge_id},{cartesiNodeUrl: envClient.CARTESI_NODE_URL, decode: true}) : null)
+                    ])
+                });
+                Promise.all(promiseList).then( (listWithScreenshot) => {
+                    const cartridgeNames = new Map<string,string>();
+                    const momentListWithScreenshot = new Array<MomentExtended>();
+                    for (const m of listWithScreenshot) {
+                        const momentWithSs = m as any as [MomentExtended,Uint8Array[],CartridgeInfo|null];
+                        if (!cartridgeNames.has(momentWithSs[0].cartridge_id))
+                            cartridgeNames.set(momentWithSs[0].cartridge_id,momentWithSs[2]?.name);
+                        momentWithSs[0].game_name = cartridgeNames.get(momentWithSs[0].cartridge_id) || "";
+                        if (momentWithSs[1].length > 0)
+                            momentWithSs[0].screenshot = byteToBase64(momentWithSs[1][0]);
+                        momentListWithScreenshot.push(momentWithSs[0]);
+                    }
+                    setMoments(momentListWithScreenshot);
+                })
             }
         );
     },[]);
 
-    const requestScreenshot = (moment:MomentInfo) => {
-        if (screenshots.has(moment.id)) return "";
-        console.log(moment,['moment_screenshot',moment.cartridge_id,moment.user_address,moment.gameplay_id,`${moment.id}`])
-
-        getOutputs(
-            {
-                tags: ['moment_screenshot',moment.cartridge_id,moment.user_address,moment.gameplay_id,`${moment.id}`],
-                output_type: 'report'
-            },
-            {cartesiNodeUrl: envClient.CARTESI_NODE_URL}
-        ).then(
-            (outputs:any[]) => {
-                if (outputs.length > 0) {
-                    // console.log(outputs[0],byteToBase64(outputs[0] as Uint8Array))
-                    screenshots.set(moment.id, byteToBase64(outputs[0] as Uint8Array));
-                    setScreenshots(screenshots);
-                }
-            }
-        );
-        return "";
-    }
-    const requestCartridgeName = (cartridge_id:string): string => {
-        if (cartridgesName.has(cartridge_id)) {
-            return ""
-        };
-        cartridgesName.set(cartridge_id, "");
-        setCartridgesName(cartridgesName);
-        cartridgeInfo({id:cartridge_id},{cartesiNodeUrl: envClient.CARTESI_NODE_URL, decode: true}).then(
-            (info: CartridgeInfo) => {
-                cartridgesName.set(cartridge_id, info.name.toUpperCase());
-                setCartridgesName(cartridgesName);
-            }
-        )
-        return "";
-    }
-    
     return (
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
             {
-                moments.map((moment: MomentInfo) => {
+                moments.map((moment: MomentExtended) => {
                     return (
                         <div className="p-3 element">
                             <div className="text-lg">
-                                {cartridgesName.has(moment.cartridge_id) ? cartridgesName.get(moment.cartridge_id) : requestCartridgeName(moment.cartridge_id)}
+                                {moment.game_name}
                             </div>
                             
                             <div className="relative h-64 w-full">
-                            
-                                {screenshots.has(moment.id) ? 
                                     <Image 
                                         alt={"moment screenshot"}
-                                        src={screenshots.get(moment.id)? `data:image/png;base64,${screenshots.get(moment.id)}`:"/made_it_symbol_trans.png"}
+                                        src={moment.screenshot? `data:image/png;base64,${moment.screenshot}`:"/made_it_symbol_trans.png"}
                                         fill={true}
                                     /> 
-                                    : requestScreenshot(moment)}
                             </div>
                             { moment.value > 0 ? <>
-                                <span className="text-2xl">Value: {ethers.utils.formatUnits(`${moment.value}`,envClient.ACCPTED_TOKEN_DECIMALS).toString()}</span>
+                                <span className="text-2xl">Value: {ethers.utils.formatUnits(`${moment.value}`,envClient.ACCEPTED_TOKEN_DECIMALS).toString()}</span>
                                 <button title='Release Moment' className='hover:text-gray-500' 
                                     onClick={() => releaseFunction(moment)}><span><CropOriginalIcon/></span></button> </>
                             : <></> }

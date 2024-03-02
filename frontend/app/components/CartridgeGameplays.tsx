@@ -16,9 +16,9 @@ const getGameplays = cache(async(id:string, user:string) => {
     if (id.length > 0) parameters.cartridge_id = id;
     if (user.length > 0) parameters.user_address = user;
 
-    const achievementList:Array<GameplayInfo> = (await gameplays(parameters, {cartesiNodeUrl: envClient.CARTESI_NODE_URL, decode: true})).data;
+    const gameplayList:Array<GameplayInfo> = (await gameplays(parameters, {cartesiNodeUrl: envClient.CARTESI_NODE_URL, decode: true})).data;
 
-    return achievementList;
+    return gameplayList;
 })
 
 const getCartridgeData = cache(async (id:string) => {

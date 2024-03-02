@@ -266,7 +266,6 @@ def create_achievement(payload: CreateAchievementsPayload) -> bool:
 @query()
 def achievements(payload: AchievementsPayload) -> bool:
     achievements_query = Achievement.select()
-    print("============================== DEBUG ===============",achievements_query.count())
 
     if payload.cartridge_id is not None:
         achievements_query = achievements_query.filter(lambda r: payload.cartridge_id == r.cartridge_id)

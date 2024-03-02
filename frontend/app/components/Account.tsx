@@ -27,8 +27,8 @@ export default function Account({wallet}:{wallet:WalletState|null}) {
 
         const signer = new ethers.providers.Web3Provider(wallet.provider, 'any').getSigner();
 
-        depositErc20(signer, envClient.DAPP_ADDR, envClient.ACCPTED_TOKEN,depositValue,
-            {sync:false, cartesiNodeUrl: envClient.CARTESI_NODE_URL,decimals:Number(envClient.ACCPTED_TOKEN_DECIMALS)}).then(
+        depositErc20(signer, envClient.DAPP_ADDR, envClient.ACCEPTED_TOKEN,depositValue,
+            {sync:false, cartesiNodeUrl: envClient.CARTESI_NODE_URL,decimals:Number(envClient.ACCEPTED_TOKEN_DECIMALS)}).then(
                 (res) => {
                     const receipt = res as ContractReceipt;
                   
@@ -52,8 +52,8 @@ export default function Account({wallet}:{wallet:WalletState|null}) {
         signer.getAddress().then((userAddress: string) =>{
             balance({address:userAddress},{cartesiNodeUrl: envClient.CARTESI_NODE_URL, decode: true}).then(
                 (walletBalance) => {
-                    if (walletBalance.hasOwnProperty('erc20') && walletBalance['erc20'].hasOwnProperty(envClient.ACCPTED_TOKEN.toLocaleLowerCase()))
-                        setBalance(walletBalance['erc20'][envClient.ACCPTED_TOKEN.toLocaleLowerCase()]);
+                    if (walletBalance.hasOwnProperty('erc20') && walletBalance['erc20'].hasOwnProperty(envClient.ACCEPTED_TOKEN.toLocaleLowerCase()))
+                        setBalance(walletBalance['erc20'][envClient.ACCEPTED_TOKEN.toLocaleLowerCase()]);
                     else setBalance(0);
                     setReloadCount(reloadCount+1);
                 }
@@ -93,7 +93,7 @@ export default function Account({wallet}:{wallet:WalletState|null}) {
                 </button>
             </div> */}
             <span className="text-2xl mb-4">
-                Balance: {ethers.utils.formatUnits(`${currentBalance}`,envClient.ACCPTED_TOKEN_DECIMALS).toString()}
+                Balance: {ethers.utils.formatUnits(`${currentBalance}`,envClient.ACCEPTED_TOKEN_DECIMALS).toString()}
                 <span className='ms-2'>USDC</span>
             </span>
             <AccountWalletOperations  user_address={wallet.accounts[0].address} reload={reloadCount} />

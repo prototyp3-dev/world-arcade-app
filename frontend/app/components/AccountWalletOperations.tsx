@@ -14,14 +14,13 @@ function AccountWalletOperations({user_address, reload}:{user_address:string, re
     const doReload = () => {
         genericGetOutputs(
             {
-                tags: ["wallet","erc20",envClient.ACCPTED_TOKEN.toLocaleLowerCase(),user_address],
+                tags: ["wallet","erc20",envClient.ACCEPTED_TOKEN.toLocaleLowerCase(),user_address],
                 output_type: 'notice'
             },
             decodeToModel,
             {cartesiNodeUrl: envClient.CARTESI_NODE_URL}
         ).then(
             (evs: Erc20Event[]) => {
-                console.log(evs)
                 setErc20events(evs);
             }
         );
@@ -51,7 +50,7 @@ function AccountWalletOperations({user_address, reload}:{user_address:string, re
                                 <span>{(new Date(Number(ev._timestamp)*1000)).toLocaleString()}</span>
                             </div>
                             <div className={`text-md ${BigNumber.from(ev.mod_amount).toBigInt() < 0 ? "text-red-500" : "text-green-500"}`}>
-                                <span>{ethers.utils.formatUnits(`${ev.mod_amount}`,envClient.ACCPTED_TOKEN_DECIMALS).toString()}</span>
+                                <span>{ethers.utils.formatUnits(`${ev.mod_amount}`,envClient.ACCEPTED_TOKEN_DECIMALS).toString()}</span>
                             </div>
                         </div>
                     )

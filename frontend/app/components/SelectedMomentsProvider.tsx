@@ -63,7 +63,7 @@ export function SelectedMomentsProvider({ children }:{ children: React.ReactNode
             collectValues.set(moment.gameplay_id, 
                 ethers.utils.formatUnits(
                     BigNumber.from(`${values.buy_base_value}`).add(BigNumber.from(`${values.buy_fee}`)),
-                    envClient.ACCEPTED_TOKEN_DECIMALS
+                    envClient.ACCPTED_TOKEN_DECIMALS
             ).toString());
             setCollectValues(collectValues);
         }
@@ -112,7 +112,7 @@ export function SelectedMomentsProvider({ children }:{ children: React.ReactNode
                 newValues.set(m.gameplay_id, 
                     ethers.utils.formatUnits(
                         BigNumber.from(`${values.buy_base_value}`).add(BigNumber.from(`${values.buy_fee}`)),
-                        envClient.ACCEPTED_TOKEN_DECIMALS
+                        envClient.ACCPTED_TOKEN_DECIMALS
                 ).toString());
                 setCollectValues(newValues);
             }

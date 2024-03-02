@@ -15,7 +15,7 @@ export const envClient = envsafe({
     desc: "Token used in application."
   }),
   ACCPTED_TOKEN_DECIMALS: num({
-    input: process.env.NEXT_PUBLIC_ACCPTED_TOKEN_DECIMALS,
+    input: process.env.NEXT_PUBLIC_ACCEPTED_TOKEN_DECIMALS,
     desc: "Number of decimals of token."
   })
 })

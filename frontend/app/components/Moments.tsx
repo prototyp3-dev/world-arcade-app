@@ -113,7 +113,7 @@ export default function Moments({propos,releaseFunction}:{propos:MomentsPayload,
                                     /> 
                             </div>
                             { moment.value > 0 ? <>
-                                <span className="text-2xl">Value: {ethers.utils.formatUnits(`${moment.value}`,envClient.ACCEPTED_TOKEN_DECIMALS).toString()}</span>
+                                <span className="text-2xl">Value: {ethers.utils.formatUnits(`${moment.value}`,envClient.ACCPTED_TOKEN_DECIMALS).toString()}</span>
                                 <button title='Release Moment' className='hover:text-gray-500' 
                                     onClick={() => releaseFunction(moment)}><span><CropOriginalIcon/></span></button> </>
                             : <></> }

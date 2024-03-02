@@ -27,7 +27,7 @@ class AppSetings:
     ACCEPTED_ERC20_ADDRESS = None
     MIN_FEE_VALUE = 10_000 # using token with 6 decimas 
     # MIN_FEE_VALUE = 1_000_000_000_000_000_000
-    INITIAL_SHARE_OFFER = 100 # using token with 6 decimas 
+    INITIAL_SHARE_OFFER = 50 # using token with 6 decimas 
     # INITIAL_SHARE_OFFER = 1099511627776
     MIN_RIVES_TREASURY_SHARES = 10 # sum up to MAX_FEE_SHARES
     MAX_FEE_SHARES = 10000 # percentage converted to 10k to avoid floats
@@ -147,7 +147,6 @@ def initialize_moment():
         cartridge_info_json = json.loads(cartridge_info)
 
         if cartridge_info_json['name'].lower() == 'antcopter':
-            print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX ANTCOPTER", )
             # with open('misc/achievement-icon.jpeg','rb') as f: icon = f.read()
             expression = "berries == 0 and deaths == 20 and frames > 0 and finished"
             a = Achievement(

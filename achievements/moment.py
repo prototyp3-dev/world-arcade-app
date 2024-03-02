@@ -50,7 +50,8 @@ class MomentsPayload(BaseModel):
     page_size:      Optional[int]
 
 class CollectValuePayload(BaseModel):
-    id: int
+    id:             Optional[int]
+    gameplay_id:    Optional[str]
 
 # Outputs
 
@@ -90,9 +91,6 @@ class MomentValues(BaseModel):
     sell_base_value:        int
     buy_fee:                int
     sell_fee:               int
-    buy_fee:                int
-    buy_fee:                int
-    buy_fee:                int
     shares_to_buy:          int
     share_value_after_buy:  int
     share_value_after_sell: int
@@ -216,6 +214,7 @@ def release_moment(payload: ReleaseMomentPayload) -> bool:
     # check if gameplay exists
     moment = helpers.select(r for r in Moment if r.id == payload.id and r.user_address == user_address).first()
     if moment is None: return return_error(f"Moment does not exist",LOGGER)
+    if moment.shares == 0: return return_error(f"Moment has no shares",LOGGER)
     
     gameplay = moment.gameplay
 
@@ -296,13 +295,16 @@ def moments(payload: MomentsPayload) -> bool:
 
         # add expression value in sell price
         if gameplay_moment_value.get(moment.gameplay.id) is None:
-            moment_values = _get_current_values(moment.gameplay)
+            moment_values = _get_current_values(moment.gameplay,moment)
             gameplay_moment_value[moment.gameplay.id] = moment_values
 
         moment_values = gameplay_moment_value[moment.gameplay.id]
-        moment_dict['value'] = (moment_values.sell_base_value + 
-                                hex2562uint(moment.gameplay.share_value) * moment.shares - 
-                                moment_values.sell_fee)
+        value = 0
+        if moment.shares > 0:
+            value = (moment_values.sell_base_value + 
+                        hex2562uint(moment.gameplay.share_value) * moment.shares - 
+                        moment_values.sell_fee)
+        moment_dict['value'] = value
 
         dict_list_result.append(moment_dict)
 
@@ -318,9 +320,16 @@ def moments(payload: MomentsPayload) -> bool:
 @query()
 def collect_value(payload: CollectValuePayload) -> bool:
     moment = helpers.select(r for r in Moment if r.id == payload.id).first()
-    if moment is None: return return_error(f"Moment does not exist",LOGGER)
+    gameplay = None
+    if moment is not None:
+        gameplay = moment.gameplay
 
-    add_output(_get_current_values(moment.gameplay, moment))
+    # check if gameplay exists
+    if gameplay is None:
+        gameplay = helpers.select(r for r in Gameplay if r.id == payload.gameplay_id).first()
+        if gameplay is None: return return_error(f"Gameplay does not exist",LOGGER)
+    
+    add_output(_get_current_values(gameplay, moment))
 
     return True
 
@@ -393,7 +402,7 @@ def _get_current_values(gameplay: Gameplay, moment: Moment | None = None) -> Mom
         share_value_after_buy = new_share_value,
         share_value_after_sell = share_value_after_sell
     )
-
+    
     return current_values
 
 def _get_erc20_balance(wallet_addr: str, contract_addr: str) -> int:

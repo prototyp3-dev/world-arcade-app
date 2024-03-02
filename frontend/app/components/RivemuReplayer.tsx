@@ -41,7 +41,7 @@ export default function RivemuReplayer({cartridgeData, gameplay}:{cartridgeData:
             setIsHidden(false);
             //rivemuReplay();
         }
-    }, [gameplay])
+    }, [gameplay,cartridgeData])
 
 
     async function rivemuReplay() {

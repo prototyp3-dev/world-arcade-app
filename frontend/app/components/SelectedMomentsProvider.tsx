@@ -6,9 +6,9 @@ import { CollectMomentPayload, GameplayInfo } from "@/app/libs/achievements/ifac
 import { CartridgeInfo } from "@/app/libs/app/ifaces";
 import { cartridgeInfo } from '../libs/app/lib';
 import { envClient } from '../utils/clientEnv';
-import { collectMoment, gameplayInfo } from '../libs/achievements/lib';
+import { collectMoment, collectValue, gameplayInfo } from '../libs/achievements/lib';
 import { useConnectWallet } from '@web3-onboard/react';
-import { ethers } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 
 const getCartridge = cache(async (id:string) => {
 	const cartridge:CartridgeInfo = await cartridgeInfo({id: id},{decode:true, cartesiNodeUrl: envClient.CARTESI_NODE_URL, cache:"force-cache"});
@@ -27,13 +27,15 @@ export interface CollectMomentExtended extends CollectMomentPayload {
     cartridge_id:string
 }
 export const SelectedMomentsContext = createContext<{
-    selectedMoments: Array<SelectedMoment>, pickMoment(moment:CollectMomentExtended):void, collectSelectedMoment(momentIndex:number):void
-}>({selectedMoments: [], pickMoment: (moment:CollectMomentExtended) => null, collectSelectedMoment: (momentIndex:number) => null});
+    selectedMoments: Array<SelectedMoment>, pickMoment(moment:CollectMomentExtended):void, collectSelectedMoment(momentIndex:number):void,
+    reloadValues():void
+}>({selectedMoments: [], pickMoment: (moment:CollectMomentExtended) => null, collectSelectedMoment: (momentIndex:number) => null, reloadValues: () => null});
 
 
 export interface SelectedMoment extends CollectMomentExtended {
     gameName:string,
-    cover:string
+    cover:string,
+    value:string
 }
 
 
@@ -41,6 +43,7 @@ export function SelectedMomentsProvider({ children }:{ children: React.ReactNode
     const [selectedMoments, setSelectedMoments] = useState<Array<SelectedMoment>>([]);
     const [{ wallet }] = useConnectWallet();
     const [cartridgesName,setCartridgesName] = useState(new Map<string,string>())
+    const [collectValues,setCollectValues] = useState(new Map<string,string>())
 
     const pickMoment = async (moment:CollectMomentExtended) => {
         const canvas = document.getElementById("canvas");
@@ -55,7 +58,22 @@ export function SelectedMomentsProvider({ children }:{ children: React.ReactNode
             setCartridgesName(cartridgesName);
         }
 
-        setSelectedMoments([...selectedMoments, {...moment, cover:coverImage, gameName: cartridgesName.get(moment.cartridge_id)||""}]);
+        if (!collectValues.has(moment.gameplay_id)) {
+            const values = await collectValue({gameplay_id:moment.gameplay_id},{decode:true, cartesiNodeUrl: envClient.CARTESI_NODE_URL});
+            collectValues.set(moment.gameplay_id, 
+                ethers.utils.formatUnits(
+                    BigNumber.from(`${values.buy_base_value}`).add(BigNumber.from(`${values.buy_fee}`)),
+                    envClient.ACCEPTED_TOKEN_DECIMALS
+            ).toString());
+            setCollectValues(collectValues);
+        }
+
+        setSelectedMoments([...selectedMoments, 
+            {...moment, 
+                cover:coverImage, 
+                gameName: cartridgesName.get(moment.cartridge_id)||"", 
+                value:collectValues.get(moment.gameplay_id)||""
+            }]);
     }
 
     const collectSelectedMoment = async (momentIndex:number) => {
@@ -85,9 +103,26 @@ export function SelectedMomentsProvider({ children }:{ children: React.ReactNode
         }
     }
  
+    const reloadValues = async () => {
+        const newValues = new Map<string,string>();
+        for (const m of selectedMoments) {
+            if (!newValues.has(m.gameplay_id)) {
+                const values = await collectValue({gameplay_id:m.gameplay_id},{decode:true, cartesiNodeUrl: envClient.CARTESI_NODE_URL});
+                console.log(values)
+                newValues.set(m.gameplay_id, 
+                    ethers.utils.formatUnits(
+                        BigNumber.from(`${values.buy_base_value}`).add(BigNumber.from(`${values.buy_fee}`)),
+                        envClient.ACCEPTED_TOKEN_DECIMALS
+                ).toString());
+                setCollectValues(newValues);
+            }
+            m.value = newValues.get(m.gameplay_id)||"";
+        }
+        setCollectValues(newValues);
+    }
     
     return (
-        <SelectedMomentsContext.Provider value={ {selectedMoments, pickMoment, collectSelectedMoment} }>
+        <SelectedMomentsContext.Provider value={ {selectedMoments, pickMoment, collectSelectedMoment, reloadValues} }>
             { children }
         </SelectedMomentsContext.Provider>
     );

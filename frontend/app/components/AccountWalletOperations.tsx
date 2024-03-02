@@ -17,25 +17,35 @@ function AccountWalletOperations({user_address, reload}:{user_address:string, re
 
     const swapDisabled = envClient.DAPP_ADDR.toLowerCase() === "0x70ac08179605AF2D9e75782b8DEcDD3c22aA4D0C".toLowerCase();
         
-    const doReload = () => {
+    useEffect( () => {
         genericGetOutputs(
             {
-                tags: ["wallet","erc20",envClient.ACCPTED_TOKEN.toLocaleLowerCase(),user_address],
+                tags: ["wallet","erc20",envClient.ACCEPTED_TOKEN.toLocaleLowerCase(),user_address],
                 output_type: 'notice'
             },
             decodeToModel,
             {cartesiNodeUrl: envClient.CARTESI_NODE_URL}
         ).then(
             (evs: Erc20Event[]) => {
-                console.log(evs)
                 setErc20events(evs);
             }
         );
-    }
+    },[reload,user_address]);
 
-    useEffect( () => {
-        doReload();
-    },[reload]);
+    // const doReload = () => {
+    //     genericGetOutputs(
+    //         {
+    //             tags: ["wallet","erc20",envClient.ACCEPTED_TOKEN.toLocaleLowerCase(),user_address],
+    //             output_type: 'notice'
+    //         },
+    //         decodeToModel,
+    //         {cartesiNodeUrl: envClient.CARTESI_NODE_URL}
+    //     ).then(
+    //         (evs: Erc20Event[]) => {
+    //             setErc20events(evs);
+    //         }
+    //     );
+    // }
 
     
     if (!erc20events) return <></>;

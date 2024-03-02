@@ -78,11 +78,11 @@ COPY app app
 COPY achievements achievements
 COPY misc/Rives-Logo.png misc/Rives-Logo.png
 COPY misc/snake.sqfs misc/snake.sqfs
-COPY misc/2048.sqfs misc/2048.sqfs
+# COPY misc/2048.sqfs misc/2048.sqfs
 COPY misc/freedoom.sqfs misc/freedoom.sqfs
 COPY misc/antcopter.sqfs misc/antcopter.sqfs
 COPY misc/monky.sqfs misc/monky.sqfs
-COPY misc/breakout.sqfs misc/breakout.sqfs
+# COPY misc/breakout.sqfs misc/breakout.sqfs
 COPY misc/test.rivlog misc/test.rivlog
 
 COPY misc/font misc/font
@@ -94,7 +94,7 @@ echo "#!/bin/sh
 
 set -e
 
-export ACCEPTED_ERC20_ADDRESS=0xf795b3D15D47ac1c61BEf4Cc6469EBb2454C6a9b
+export ACCEPTED_ERC20_ADDRESS=0xae7f61eCf06C65405560166b259C54031428A9C4
 export PYTHONPATH=${PYTHONPATH}
 cartesapp run app achievements --log-level info
 " > entrypoint.sh && \

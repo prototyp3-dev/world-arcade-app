@@ -20,7 +20,7 @@ export default function LineChart({balances}) {
 
       labels.push(`${month}/${day}/${year}`);
 
-      data.push(BigNumber.from(balances[i].mod_amount)/(10**envClient.ACCPTED_TOKEN_DECIMALS))
+      data.push(BigNumber.from(balances[i].balance)/(10**envClient.ACCEPTED_TOKEN_DECIMALS))
     }
 
     var myChart = new Chart(ctx, {
@@ -36,7 +36,7 @@ export default function LineChart({balances}) {
         }]
       },
     });
-  }, [])
+  }, [balances])
 
 
 

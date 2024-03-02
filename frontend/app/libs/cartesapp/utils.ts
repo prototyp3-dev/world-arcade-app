@@ -57,6 +57,7 @@ export interface Models {
 
 export interface InspectReportInput {
     index?: number;
+    timestamp?: number;
 }
 
 export interface InspectReport {
@@ -159,18 +160,20 @@ export class BasicOutput<T extends object> extends IOData<T> {
     _payload: string
     _inputIndex?: number
     _outputIndex?: number
+    _timestamp?: number
 
-    constructor(model: ModelInterface<T>, payload: string, inputIndex?: number, outputIndex?: number) {
+    constructor(model: ModelInterface<T>, payload: string, inputIndex?: number, outputIndex?: number, timestamp?: number) {
         super(model,genericDecodeTo<T>(payload,model),false);
         this._inputIndex = inputIndex;
         this._outputIndex = outputIndex;
         this._payload = payload;
+        this._timestamp = timestamp;
     }
 }
 
 export class Output<T extends object> extends BasicOutput<T>{
     constructor(model: ModelInterface<T>, report: CartesiReport | InspectReport) {
-        super(model, report.payload, report.input?.index, report.index);
+        super(model, report.payload, report.input?.index, report.index, report.input?.timestamp);
     }
 }
 
@@ -179,17 +182,18 @@ export class OutputWithProof<T extends object> extends BasicOutput<T>{
     _inputIndex: number
     _outputIndex: number
     
-    constructor(model: ModelInterface<T>, payload: string, inputIndex: number, outputIndex: number, proof: Maybe<Proof> | undefined) {
+    constructor(model: ModelInterface<T>, payload: string, inputIndex: number, outputIndex: number, timestamp: number, proof: Maybe<Proof> | undefined) {
         super(model, payload, inputIndex, outputIndex);
         this._inputIndex = inputIndex;
         this._outputIndex = outputIndex;
         this._proof = proof;
+        this._timestamp = timestamp;
     }
 }
 
 export class Event<T extends object> extends OutputWithProof<T>{
     constructor(model: ModelInterface<T>, notice: CartesiNotice) {
-        super(model, notice.payload, notice.input.index, notice.index, notice.proof);
+        super(model, notice.payload, notice.input.index, notice.index, notice.input.timestamp, notice.proof);
     }
     validateOnchain = async (signer: Signer, dappAddress: string): Promise<boolean> => {
         if (this._proof == undefined)
@@ -201,7 +205,7 @@ export class Event<T extends object> extends OutputWithProof<T>{
 export class ContractCall<T extends object> extends OutputWithProof<T>{
     _destination: string
     constructor(model: ModelInterface<T>, voucher: CartesiVoucher) {
-        super(model, voucher.payload, voucher.input.index, voucher.index, voucher.proof);
+        super(model, voucher.payload, voucher.input.index, voucher.index, voucher.input.timestamp, voucher.proof);
         this._destination = voucher.destination;
     }
     wasExecuted = async (signer: Signer, dappAddress: string): Promise<boolean> => {
@@ -265,10 +269,10 @@ export async function genericInspect<T extends object>(
     const excludeParams: string[] = [];
     const matchRoute = route.matchAll(/\{(\w+)\}/g);
     for (const m of matchRoute) {
-        route.replace(m[0],inputData[m[0]]);
+        route = route.replace(m[0],inputData[m[1]]);
         excludeParams.push(m[1]);
     }
-    const payload = `${route}${inputData.export()}`
+    const payload = `${route}${inputData.export(excludeParams)}`
     return await inspectCall(payload,options);
 }
 

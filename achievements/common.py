@@ -25,10 +25,12 @@ class AppSetings:
     TREASURY_ADDRESS = "0x" + "0"*40
     PROTOCOL_ADDRESS = "0x" + "f"*40
     ACCEPTED_ERC20_ADDRESS = None
-    MIN_FEE_VALUE = 1_000_000_000_000_000_000
+    MIN_FEE_VALUE = 10_000 # using token with 6 decimas 
+    # MIN_FEE_VALUE = 1_000_000_000_000_000_000
+    INITIAL_SHARE_OFFER = 50 # using token with 6 decimas 
+    # INITIAL_SHARE_OFFER = 1099511627776
     MIN_RIVES_TREASURY_SHARES = 10 # sum up to MAX_FEE_SHARES
     MAX_FEE_SHARES = 10000 # percentage converted to 10k to avoid floats
-    INITIAL_SHARE_OFFER = 1099511627776
 
 
 ###

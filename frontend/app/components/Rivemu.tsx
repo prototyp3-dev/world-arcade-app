@@ -61,34 +61,57 @@ function Rivemu({cartridge, inCard, args, selectedScoreFunction}:
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
+        async function initialize() {
+            if (!cartridgeData) {
+                setIsPlaying(false);
+                setOverallScore(0);
+                // setReplayLog(undefined);
+            }
+            async function loadCartridge() {
+                if (cartridgeData) return;
+                const data = await getCartridgeData(cartridge.id);
+                setCartridgeData(data);
+            }
+        
+            await loadCartridge();
+            // if (selectedCartridge?.replay){
+            //     setReplayLog(selectedCartridge.replay);
+            //     setIsReplaying(true);
+            // }
+            // if (cartridgeGameplay) {
+            //     setReplayLog(cartridgeGameplay);
+            //     setIsReplaying(false);
+            //     // setReplayTip(true);
+            // }
+        }
         if (cartridge) initialize();
     }
-    ,[cartridge])
+    ,[cartridge,cartridgeData])
 
 
-    async function initialize() {
-        if (!cartridgeData) {
-            setIsPlaying(false);
-            setOverallScore(0);
-            // setReplayLog(undefined);
-        }
-        await loadCartridge();
-        // if (selectedCartridge?.replay){
-        //     setReplayLog(selectedCartridge.replay);
-        //     setIsReplaying(true);
-        // }
-        // if (cartridgeGameplay) {
-        //     setReplayLog(cartridgeGameplay);
-        //     setIsReplaying(false);
-        //     // setReplayTip(true);
-        // }
-    }
+    // async function initialize() {
+    //     if (!cartridgeData) {
+    //         setIsPlaying(false);
+    //         setOverallScore(0);
+    //         // setReplayLog(undefined);
+    //     }
+    //     await loadCartridge();
+    //     // if (selectedCartridge?.replay){
+    //     //     setReplayLog(selectedCartridge.replay);
+    //     //     setIsReplaying(true);
+    //     // }
+    //     // if (cartridgeGameplay) {
+    //     //     setReplayLog(cartridgeGameplay);
+    //     //     setIsReplaying(false);
+    //     //     // setReplayTip(true);
+    //     // }
+    // }
 
-    async function loadCartridge() {
-        if (cartridgeData) return;
-        const data = await getCartridgeData(cartridge.id);
-        setCartridgeData(data);
-    }
+    // async function loadCartridge() {
+    //     if (cartridgeData) return;
+    //     const data = await getCartridgeData(cartridge.id);
+    //     setCartridgeData(data);
+    // }
 
     const handleGameplayChange = (event:any) => {
         const reader = new FileReader();

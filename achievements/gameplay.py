@@ -118,7 +118,7 @@ def gameplay_info(payload: GameplayPayload) -> bool:
             user_achievement_dict['achievement_id'] = user_achievement.achievement.id
             user_achievement_dict['achievement_name'] = user_achievement.achievement.name
             user_achievement_dict['achievement_description'] = user_achievement.achievement.description
-            user_achievement_dict['achievement_icon'] = base64.b64encode(user_achievement.achievement.icon)
+            user_achievement_dict['achievement_icon'] = base64.b64encode(user_achievement.achievement.icon) if user_achievement.achievement.icon else ""
             user_achievements.append(user_achievement_dict)
 
         gameplay_dict['achievements'] = user_achievements

@@ -16,9 +16,9 @@ const getGameplays = cache(async(id:string, user:string) => {
     if (id.length > 0) parameters.cartridge_id = id;
     if (user.length > 0) parameters.user_address = user;
 
-    const achievementList:Array<GameplayInfo> = (await gameplays(parameters, {cartesiNodeUrl: envClient.CARTESI_NODE_URL, decode: true})).data;
+    const gameplayList:Array<GameplayInfo> = (await gameplays(parameters, {cartesiNodeUrl: envClient.CARTESI_NODE_URL, decode: true})).data;
 
-    return achievementList;
+    return gameplayList;
 })
 
 const getCartridgeData = cache(async (id:string) => {
@@ -50,13 +50,12 @@ export default function CartridgeGameplays({cartridge_id}:{cartridge_id?:string}
     const [gameplays, setGameplays] = useState<Array<GameplayInfo>|null>(null);
     const [{ wallet }] = useConnectWallet();
 
-    const selectedCartridgeId = cartridge_id || "";
     const user = wallet? wallet.accounts[0].address.toLocaleLowerCase(): "";
 
     useEffect(() => {
         // get gameplays from all users
-        getGameplays(selectedCartridgeId, "").then((gameplaysList) => setGameplays(gameplaysList))
-    }, [])
+        getGameplays(cartridge_id || "", "").then((gameplaysList) => setGameplays(gameplaysList))
+    }, [cartridge_id])
 
     async function playReplay(gameplayId:string, cartridgeId:string) {
         let data;

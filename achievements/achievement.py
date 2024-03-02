@@ -383,6 +383,7 @@ def _evaluate_gameplay_achievements(cartridge_id, log, args, in_card, replay_out
     except Exception as e:
         raise Exception(f"Couldn't convert outhist to json: {e}")
 
+    # TODO: for app.replay endpoint don't allow blank outhash
     if replay_outcard_hash == b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00':
         replay_outcard_hash = outhash
 

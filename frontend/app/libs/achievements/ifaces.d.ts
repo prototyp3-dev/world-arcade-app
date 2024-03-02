@@ -7,24 +7,24 @@
 
 export interface _Master_ {
   AchievementsPayload: AchievementsPayload;
-  AchievementsOutput: AchievementsOutput;
-  MomentsOutput: MomentsOutput;
-  GameplaysOutput: GameplaysOutput;
-  CreateAchievementsPayload: CreateAchievementsPayload;
-  CollectValuePayload: CollectValuePayload;
   CollectMomentPayload: CollectMomentPayload;
   ReleaseMomentPayload: ReleaseMomentPayload;
-  MomentValues: MomentValues;
-  AchievementInfo: AchievementInfo;
-  AcquiredAchievement: AcquiredAchievement;
-  CollectedMoment: CollectedMoment;
-  GameplayInfo: GameplayInfo;
-  GameplayPayload: GameplayPayload;
-  GameplaysPayload: GameplaysPayload;
-  MomentInfo: MomentInfo;
-  MomentsPayload: MomentsPayload;
   ReplayAchievements: ReplayAchievements;
   AchievementPayload: AchievementPayload;
+  AchievementsOutput: AchievementsOutput;
+  MomentInfo: MomentInfo;
+  GameplayInfo: GameplayInfo;
+  GameplayPayload: GameplayPayload;
+  AchievementInfo: AchievementInfo;
+  GameplaysPayload: GameplaysPayload;
+  AcquiredAchievement: AcquiredAchievement;
+  GameplaysOutput: GameplaysOutput;
+  CollectValuePayload: CollectValuePayload;
+  MomentsPayload: MomentsPayload;
+  CollectedMoment: CollectedMoment;
+  CreateAchievementsPayload: CreateAchievementsPayload;
+  MomentsOutput: MomentsOutput;
+  MomentValues: MomentValues;
 }
 export interface AchievementsPayload {
   cartridge_id?: string;
@@ -35,6 +35,29 @@ export interface AchievementsPayload {
   page?: number;
   page_size?: number;
   player?: string;
+}
+export interface CollectMomentPayload {
+  gameplay_id: string;
+  outcard_hash: string;
+  args: string;
+  in_card: string;
+  log: string;
+  frame: number;
+  user_achievement: number;
+}
+export interface ReleaseMomentPayload {
+  id: number;
+}
+export interface ReplayAchievements {
+  cartridge_id: string;
+  outcard_hash: string;
+  args: string;
+  in_card: string;
+  log: string;
+  achievements: string[];
+}
+export interface AchievementPayload {
+  id: string;
 }
 export interface AchievementsOutput {
   data: AchievementInfo[];
@@ -68,11 +91,6 @@ export interface UserAchievementInfo {
   achievement_icon?: string;
   number_collected_moments?: number;
 }
-export interface MomentsOutput {
-  data: MomentInfo[];
-  total: number;
-  page: number;
-}
 export interface MomentInfo {
   id: string;
   user_address: string;
@@ -80,12 +98,9 @@ export interface MomentInfo {
   frame: number;
   index: number;
   shares: number;
+  cartridge_id?: string;
+  gameplay_id?: string;
   value?: number;
-}
-export interface GameplaysOutput {
-  data: GameplayInfo[];
-  total: number;
-  page: number;
 }
 export interface GameplayInfo {
   id: string;
@@ -96,6 +111,54 @@ export interface GameplayInfo {
   total_shares?: number;
   achievements?: UserAchievementInfo[];
   moments?: MomentInfo[];
+}
+export interface GameplayPayload {
+  id: string;
+}
+export interface GameplaysPayload {
+  cartridge_id?: string;
+  user_address?: string;
+  order_by?: string;
+  order_dir?: string;
+  page?: number;
+  page_size?: number;
+}
+export interface AcquiredAchievement {
+  cartridge_id: string;
+  user_address: string;
+  achievement_id: string;
+  gameplay_id: string;
+  timestamp: number;
+  frame: number;
+  index: number;
+  cid?: string;
+}
+export interface GameplaysOutput {
+  data: GameplayInfo[];
+  total: number;
+  page: number;
+}
+export interface CollectValuePayload {
+  id?: number;
+  gameplay_id?: string;
+}
+export interface MomentsPayload {
+  cartridge_id?: string;
+  gameplay_id?: string;
+  user_address?: string;
+  order_by?: string;
+  order_dir?: string;
+  page?: number;
+  page_size?: number;
+}
+export interface CollectedMoment {
+  cartridge_id: string;
+  user_address: string;
+  gameplay_id: string;
+  timestamp: number;
+  frame: number;
+  index: number;
+  cid?: string;
 }
 export interface CreateAchievementsPayload {
   cartridge_id: string;
@@ -108,20 +171,10 @@ export interface CreateAchievementsPayload {
   in_card: string;
   log: string;
 }
-export interface CollectValuePayload {
-  id: number;
-}
-export interface CollectMomentPayload {
-  gameplay_id: string;
-  outcard_hash: string;
-  args: string;
-  in_card: string;
-  log: string;
-  frame: number;
-  user_achievement: number;
-}
-export interface ReleaseMomentPayload {
-  id: number;
+export interface MomentsOutput {
+  data: MomentInfo[];
+  total: number;
+  page: number;
 }
 export interface MomentValues {
   total_moments: number;
@@ -137,54 +190,4 @@ export interface MomentValues {
   collectors_pool_fee: number;
   developer_fee: number;
   player_fee: number;
-}
-export interface AcquiredAchievement {
-  cartridge_id: string;
-  user_address: string;
-  achievement_id: string;
-  gameplay_id: string;
-  timestamp: number;
-  frame: number;
-  index: number;
-  cid?: string;
-}
-export interface CollectedMoment {
-  cartridge_id: string;
-  user_address: string;
-  gameplay_id: string;
-  timestamp: number;
-  frame: number;
-  index: number;
-  cid?: string;
-}
-export interface GameplayPayload {
-  id: string;
-}
-export interface GameplaysPayload {
-  cartridge_id?: string;
-  user_address?: string;
-  order_by?: string;
-  order_dir?: string;
-  page?: number;
-  page_size?: number;
-}
-export interface MomentsPayload {
-  cartridge_id?: string;
-  gameplay_id?: string;
-  user_address?: string;
-  order_by?: string;
-  order_dir?: string;
-  page?: number;
-  page_size?: number;
-}
-export interface ReplayAchievements {
-  cartridge_id: string;
-  outcard_hash: string;
-  args: string;
-  in_card: string;
-  log: string;
-  achievements: string[];
-}
-export interface AchievementPayload {
-  id: string;
 }

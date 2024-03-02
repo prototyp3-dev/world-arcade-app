@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import {Web3OnboardProviderClient} from './utils/web3OnboardProvider';
 import Navbar from "./components/Navbar";
+import { SelectedMomentsProvider } from "./components/SelectedMomentsProvider";
+import SelectedMoments from "./components/SelectedMoments";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,10 +21,13 @@ export default function RootLayout({
   return (
     <html lang="en-US" className="container">
       <Web3OnboardProviderClient>
-        <body className={inter.className}>
-          <Navbar/>
-          {children}
-        </body>
+        <SelectedMomentsProvider>
+          <body className={inter.className}>
+            <SelectedMoments/>
+            <Navbar/>
+            {children}
+          </body>
+        </SelectedMomentsProvider>
       </Web3OnboardProviderClient>
     </html>
   );

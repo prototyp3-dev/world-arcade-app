@@ -50,7 +50,8 @@ class MomentsPayload(BaseModel):
     page_size:      Optional[int]
 
 class CollectValuePayload(BaseModel):
-    id: int
+    id:             Optional[int]
+    gameplay_id:    Optional[str]
 
 # Outputs
 
@@ -72,6 +73,8 @@ class MomentInfo(BaseModel):
     frame: UInt
     index: UInt
     shares: UInt
+    cartridge_id: Optional[str]
+    gameplay_id: Optional[str]
     value: Optional[int]
 
 @output()
@@ -88,9 +91,6 @@ class MomentValues(BaseModel):
     sell_base_value:        int
     buy_fee:                int
     sell_fee:               int
-    buy_fee:                int
-    buy_fee:                int
-    buy_fee:                int
     shares_to_buy:          int
     share_value_after_buy:  int
     share_value_after_sell: int
@@ -140,8 +140,10 @@ def collect_moment(payload: CollectMomentPayload) -> bool:
                     - moment_values.developer_fee - moment_values.player_fee 
                     - moment_values.collectors_pool_fee - moment_values.buy_in_fee)
     dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,user_address,AppSetings.TREASURY_ADDRESS,treasury_fee)
-    dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,user_address,cartridge.user_address,moment_values.developer_fee)
-    dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,user_address,gameplay.user_address,moment_values.player_fee)
+    if user_address != cartridge.user_address:
+        dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,user_address,cartridge.user_address,moment_values.developer_fee)
+    if user_address != gameplay.user_address:
+        dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,user_address,gameplay.user_address,moment_values.player_fee)
     dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,user_address,AppSetings.PROTOCOL_ADDRESS,
                                moment_values.buy_base_value + moment_values.collectors_pool_fee + moment_values.buy_in_fee)
 
@@ -198,7 +200,7 @@ def collect_moment(payload: CollectMomentPayload) -> bool:
     emit_event(cm,tags=['moment_collected',gameplay.cartridge_id,user_address,gameplay.id,str(m.id)])
 
     # emit event
-    add_output(screenshot,tags=['moment_screenshot',gameplay.cartridge_id,user_address,gameplay.id])
+    add_output(screenshot,tags=['moment_screenshot',gameplay.cartridge_id,user_address,gameplay.id,str(m.id)])
 
     return True
 
@@ -212,6 +214,7 @@ def release_moment(payload: ReleaseMomentPayload) -> bool:
     # check if gameplay exists
     moment = helpers.select(r for r in Moment if r.id == payload.id and r.user_address == user_address).first()
     if moment is None: return return_error(f"Moment does not exist",LOGGER)
+    if moment.shares == 0: return return_error(f"Moment has no shares",LOGGER)
     
     gameplay = moment.gameplay
 
@@ -234,10 +237,12 @@ def release_moment(payload: ReleaseMomentPayload) -> bool:
     dapp_wallet.transfer_erc20(AppSetings.ACCEPTED_ERC20_ADDRESS,AppSetings.PROTOCOL_ADDRESS,user_address,
                                moment_values.sell_base_value - moment_values.sell_fee)
 
-    gameplay.share_value = uint2hex256(moment_values.share_value_after_buy)
-    gameplay.total_shares -= moment.shares
+    gameplay.set(**{
+        "share_value": uint2hex256(moment_values.share_value_after_buy),
+        "total_shares": gameplay.total_shares - moment.shares
+    })
 
-    moment.shares = 0
+    moment.set(**{"shares": 0})
 
     return True
 
@@ -285,16 +290,21 @@ def moments(payload: MomentsPayload) -> bool:
     dict_list_result = []
     for moment in moments:
         moment_dict = moment.to_dict()
+        moment_dict["cartridge_id"] = moment.gameplay.cartridge_id
+        moment_dict["gameplay_id"] = moment.gameplay.id
 
         # add expression value in sell price
         if gameplay_moment_value.get(moment.gameplay.id) is None:
-            moment_values = _get_current_values(moment.gameplay)
+            moment_values = _get_current_values(moment.gameplay,moment)
             gameplay_moment_value[moment.gameplay.id] = moment_values
 
         moment_values = gameplay_moment_value[moment.gameplay.id]
-        moment_dict['value'] = (moment_values.sell_base_value + 
-                                hex2562uint(moment.gameplay.share_value) * moment.shares - 
-                                moment_values.sell_fee)
+        value = 0
+        if moment.shares > 0:
+            value = (moment_values.sell_base_value + 
+                        hex2562uint(moment.gameplay.share_value) * moment.shares - 
+                        moment_values.sell_fee)
+        moment_dict['value'] = value
 
         dict_list_result.append(moment_dict)
 
@@ -310,9 +320,16 @@ def moments(payload: MomentsPayload) -> bool:
 @query()
 def collect_value(payload: CollectValuePayload) -> bool:
     moment = helpers.select(r for r in Moment if r.id == payload.id).first()
-    if moment is None: return return_error(f"Moment does not exist",LOGGER)
+    gameplay = None
+    if moment is not None:
+        gameplay = moment.gameplay
 
-    add_output(_get_current_values(moment.gameplay, moment))
+    # check if gameplay exists
+    if gameplay is None:
+        gameplay = helpers.select(r for r in Gameplay if r.id == payload.gameplay_id).first()
+        if gameplay is None: return return_error(f"Gameplay does not exist",LOGGER)
+    
+    add_output(_get_current_values(gameplay, moment))
 
     return True
 
@@ -385,7 +402,7 @@ def _get_current_values(gameplay: Gameplay, moment: Moment | None = None) -> Mom
         share_value_after_buy = new_share_value,
         share_value_after_sell = share_value_after_sell
     )
-
+    
     return current_values
 
 def _get_erc20_balance(wallet_addr: str, contract_addr: str) -> int:

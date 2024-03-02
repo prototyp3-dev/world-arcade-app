@@ -71,14 +71,23 @@ def initialize_data():
     except Exception as e:
         LOGGER.warning(e)
 
-    try:
-        cartridge_example_file = open('misc/2048.sqfs','rb')
-        cartridge_example_data = cartridge_example_file.read()
-        cartridge_example_file.close()
-        create_cartridge(cartridge_example_data,msg_sender="0xAf1577F6A113da0bc671a59D247528811501cF94")
-        if AppSettings.rivemu_path is None: os.remove('misc/2048.sqfs')
-    except Exception as e:
-        LOGGER.warning(e)
+    # try:
+    #     cartridge_example_file = open('misc/2048.sqfs','rb')
+    #     cartridge_example_data = cartridge_example_file.read()
+    #     cartridge_example_file.close()
+    #     create_cartridge(cartridge_example_data,msg_sender="0xAf1577F6A113da0bc671a59D247528811501cF94")
+    #     if AppSettings.rivemu_path is None: os.remove('misc/2048.sqfs')
+    # except Exception as e:
+    #     LOGGER.warning(e)
+
+    # try:
+    #     cartridge_example_file = open('misc/breakout.sqfs','rb')
+    #     cartridge_example_data = cartridge_example_file.read()
+    #     cartridge_example_file.close()
+    #     create_cartridge(cartridge_example_data,msg_sender="0xd33Dfbfb0D0961284656e0225CFfB561090762D3")
+    #     if AppSettings.rivemu_path is None: os.remove('misc/breakout.sqfs')
+    # except Exception as e:
+    #     LOGGER.warning(e)
 
 
 # Inputs

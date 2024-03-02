@@ -38,7 +38,7 @@ async function handle_file_input(e:React.ChangeEvent<HTMLInputElement>, callback
 
 
 const getCartridges = cache(async () => {
-	const cartridges:Array<CartridgeInfo> = (await cartridgerequest({},{decode:true, cartesiNodeUrl: envClient.CARTESI_NODE_URL,cache:"force-cache"})).data;
+	const cartridges:Array<CartridgeInfo> = (await cartridgerequest({},{decode:true, cartesiNodeUrl: envClient.CARTESI_NODE_URL})).data;
 
     return cartridges;
 })
@@ -59,19 +59,6 @@ export default function CreateAchievementForm({ cartridge_id }:{cartridge_id?:st
     const [selected, setSelected] = useState<CartridgeInfo>({created_at: 0, id: "", name: "", user_address: ""});
     const [query, setQuery] = useState('');
 
-    const filteredCartridges = query === ''
-        ?
-            cartridges
-        :
-            cartridges.filter((cartridge) => 
-                cartridge.name
-                .toLowerCase()
-                .replace(/\s+/g, '')
-                .includes(query.toLowerCase().replace(/\s+/g, ''))
-            )
-
-    const isSubmitDisabled = selected.id.length == 0 || !gameplay || name.length == 0 || expression.length == 0 || description.length == 0? true:false;
-
     useEffect(() => {
         getCartridges().then((cartridgeList) => {
             setCartridges(cartridgeList);
@@ -84,7 +71,20 @@ export default function CreateAchievementForm({ cartridge_id }:{cartridge_id?:st
                 }
             }
         })
-    }, [])
+    }, [cartridge_id])
+
+    const filteredCartridges = query === ''
+        ?
+            cartridges
+        :
+            cartridges.filter((cartridge) => 
+                cartridge.name
+                .toLowerCase()
+                .replace(/\s+/g, '')
+                .includes(query.toLowerCase().replace(/\s+/g, ''))
+            )
+
+    const isSubmitDisabled = selected.id.length == 0 || !gameplay || name.length == 0 || expression.length == 0 || description.length == 0? true:false;
 
 
     const handleNameChange = (event:React.FormEvent<HTMLInputElement>) => {

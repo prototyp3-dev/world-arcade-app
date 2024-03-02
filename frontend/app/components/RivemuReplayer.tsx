@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { useContext, useEffect, useState } from "react";
 import { SelectedMomentsContext } from "./SelectedMomentsProvider";
+import { sha256 } from "js-sha256";
 
 import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -40,7 +41,7 @@ export default function RivemuReplayer({cartridgeData, gameplay}:{cartridgeData:
             setIsHidden(false);
             //rivemuReplay();
         }
-    }, [gameplay])
+    }, [gameplay,cartridgeData])
 
 
     async function rivemuReplay() {
@@ -206,6 +207,7 @@ export default function RivemuReplayer({cartridgeData, gameplay}:{cartridgeData:
                             onKeyDown={() => null} onKeyUp={() => null}
                             onClick={() => pickMoment({
                                     gameplay_id: gameplay.id,
+                                    cartridge_id: sha256(cartridgeData),
                                     frame: currFrame,
                                     args: args,
                                     in_card: ethers.utils.hexlify(inCard),

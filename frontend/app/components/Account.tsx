@@ -16,6 +16,21 @@ export default function Account({wallet}:{wallet:WalletState|null}) {
     const [depositValue, setDepositValue] = useState(0);
     const [reloadCount, setReloadCount] = useState(0);
 
+    useEffect( () => {
+        if (!wallet) {
+            return
+        }
+
+        balance({address:wallet.accounts[0].address},{cartesiNodeUrl: envClient.CARTESI_NODE_URL, decode: true}).then(
+            (walletBalance) => {
+                if (walletBalance.hasOwnProperty('erc20') && walletBalance['erc20'].hasOwnProperty(envClient.ACCEPTED_TOKEN.toLocaleLowerCase()))
+                    setBalance(walletBalance['erc20'][envClient.ACCEPTED_TOKEN.toLocaleLowerCase()]);
+                else setBalance(0);
+                setReloadCount(1);
+            }
+        );
+    },[wallet]);
+    
     if (!wallet || wallet.accounts.length == 0) return <></>;
 
     const depositTokens =() => {
@@ -47,25 +62,17 @@ export default function Account({wallet}:{wallet:WalletState|null}) {
             return
         }
 
-        const signer = new ethers.providers.Web3Provider(wallet.provider, 'any').getSigner();
-
-        signer.getAddress().then((userAddress: string) =>{
-            balance({address:userAddress},{cartesiNodeUrl: envClient.CARTESI_NODE_URL, decode: true}).then(
-                (walletBalance) => {
-                    if (walletBalance.hasOwnProperty('erc20') && walletBalance['erc20'].hasOwnProperty(envClient.ACCEPTED_TOKEN.toLocaleLowerCase()))
-                        setBalance(walletBalance['erc20'][envClient.ACCEPTED_TOKEN.toLocaleLowerCase()]);
-                    else setBalance(0);
-                    setReloadCount(reloadCount+1);
-                }
-            );
-        });
+        balance({address:wallet.accounts[0].address},{cartesiNodeUrl: envClient.CARTESI_NODE_URL, decode: true}).then(
+            (walletBalance) => {
+                if (walletBalance.hasOwnProperty('erc20') && walletBalance['erc20'].hasOwnProperty(envClient.ACCEPTED_TOKEN.toLocaleLowerCase()))
+                    setBalance(walletBalance['erc20'][envClient.ACCEPTED_TOKEN.toLocaleLowerCase()]);
+                else setBalance(0);
+                setReloadCount(reloadCount+1);
+            }
+        );
     }
 
 
-    useEffect( () => {
-        reloadBalance();
-    },[]);
-    
     return (
         <div className="flex flex-col p-4">            
             {/* <div className="flex items-center justify-end pb-2 pr-6">

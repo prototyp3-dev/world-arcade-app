@@ -36,7 +36,7 @@ export default function LineChart({balances}) {
         }]
       },
     });
-  }, [])
+  }, [balances])
 
 
 

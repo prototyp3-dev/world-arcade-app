@@ -402,9 +402,7 @@ def _get_current_values(gameplay: Gameplay, moment: Moment | None = None) -> Mom
         share_value_after_buy = new_share_value,
         share_value_after_sell = share_value_after_sell
     )
-    print("============ debug ==========")
-    print(current_values.dict())
-
+    
     return current_values
 
 def _get_erc20_balance(wallet_addr: str, contract_addr: str) -> int:

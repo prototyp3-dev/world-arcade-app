@@ -29,11 +29,10 @@ export default function CartridgeAchievements({cartridge_id}:{cartridge_id?:stri
     const [{ wallet }] = useConnectWallet();
 
     const selectedCartridgeId = cartridge_id || "";
-    const user = wallet? wallet.accounts[0].address: "";
 
     useEffect(() => {
-        getAchievements(selectedCartridgeId, user).then((achievementList) => setAchievements(achievementList));
-    }, [wallet?.accounts[0]])
+        getAchievements(cartridge_id||"", wallet? wallet.accounts[0].address: "").then((achievementList) => setAchievements(achievementList));
+    }, [wallet,cartridge_id])
 
 
     return (

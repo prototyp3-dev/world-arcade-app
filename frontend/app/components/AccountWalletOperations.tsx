@@ -11,7 +11,7 @@ import LineChart from "@/app/components/LineChart";
 function AccountWalletOperations({user_address, reload}:{user_address:string, reload:number}) {
     const [erc20events,setErc20events] = useState<Erc20Event[]>();
         
-    const doReload = () => {
+    useEffect( () => {
         genericGetOutputs(
             {
                 tags: ["wallet","erc20",envClient.ACCEPTED_TOKEN.toLocaleLowerCase(),user_address],
@@ -24,11 +24,22 @@ function AccountWalletOperations({user_address, reload}:{user_address:string, re
                 setErc20events(evs);
             }
         );
-    }
+    },[reload,user_address]);
 
-    useEffect( () => {
-        doReload();
-    },[reload]);
+    // const doReload = () => {
+    //     genericGetOutputs(
+    //         {
+    //             tags: ["wallet","erc20",envClient.ACCEPTED_TOKEN.toLocaleLowerCase(),user_address],
+    //             output_type: 'notice'
+    //         },
+    //         decodeToModel,
+    //         {cartesiNodeUrl: envClient.CARTESI_NODE_URL}
+    //     ).then(
+    //         (evs: Erc20Event[]) => {
+    //             setErc20events(evs);
+    //         }
+    //     );
+    // }
 
     
     if (!erc20events) return <></>;

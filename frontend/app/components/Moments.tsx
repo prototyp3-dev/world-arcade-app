@@ -93,14 +93,14 @@ export default function Moments({propos,releaseFunction}:{propos:MomentsPayload,
                 })
             }
         );
-    },[]);
+    },[propos]);
 
     return (
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
             {
-                moments.map((moment: MomentExtended) => {
+                moments.map((moment: MomentExtended,index:number) => {
                     return (
-                        <div className="p-3 element">
+                        <div className="p-3 element" key={index}>
                             <div className="text-lg">
                                 {moment.game_name}
                             </div>
